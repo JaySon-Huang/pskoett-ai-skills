@@ -1,4 +1,4 @@
-# pskoett-skills
+# pskoett-ai-skills
 
 A collection of skills for AI agents. Follows the [Agent Skills specification](https://agentskills.io/specification).
 

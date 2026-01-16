@@ -18,7 +18,7 @@ Log learnings and errors to markdown files for continuous improvement. Coding ag
 | Knowledge was outdated | Log to `.learnings/LEARNINGS.md` with category `knowledge_gap` |
 | Found better approach | Log to `.learnings/LEARNINGS.md` with category `best_practice` |
 | Similar to existing entry | Link with `**See Also**`, consider priority bump |
-| Broadly applicable learning | Promote to `CLAUDE.md` and/or `AGENTS.md` |
+| Broadly applicable learning | Promote to `CLAUDE.md`, `AGENTS.md`, and/or `.github/copilot-instructions.md` |
 
 ## Setup
 
@@ -155,7 +155,7 @@ When an issue is fixed, update the entry:
 Other status values:
 - `in_progress` - Actively being worked on
 - `wont_fix` - Decided not to address (add reason in Resolution notes)
-- `promoted` - Elevated to CLAUDE.md or AGENTS.md
+- `promoted` - Elevated to CLAUDE.md, AGENTS.md, or .github/copilot-instructions.md
 
 ## Promoting to Project Memory
 
@@ -174,14 +174,15 @@ When a learning is broadly applicable (not a one-off fix), promote it to permane
 |--------|-------------------|
 | `CLAUDE.md` | Project facts, conventions, gotchas for all Claude interactions |
 | `AGENTS.md` | Agent-specific workflows, tool usage patterns, automation rules |
+| `.github/copilot-instructions.md` | Project context and conventions for GitHub Copilot |
 
 ### How to Promote
 
 1. **Distill** the learning into a concise rule or fact
-2. **Add** to appropriate section in target file
+2. **Add** to appropriate section in target file (create file if needed)
 3. **Update** original entry:
    - Change `**Status**: pending` → `**Status**: promoted`
-   - Add `**Promoted**: CLAUDE.md` or `**Promoted**: AGENTS.md`
+   - Add `**Promoted**: CLAUDE.md`, `AGENTS.md`, or `.github/copilot-instructions.md`
 
 ### Promotion Examples
 
@@ -214,7 +215,7 @@ If logging something similar to an existing entry:
 2. **Link entries**: Add `**See Also**: ERR-20250110-001` in Metadata
 3. **Bump priority** if issue keeps recurring
 4. **Consider systemic fix**: Recurring issues often indicate:
-   - Missing documentation (→ promote to CLAUDE.md)
+   - Missing documentation (→ promote to CLAUDE.md or .github/copilot-instructions.md)
    - Missing automation (→ add to AGENTS.md)
    - Architectural problem (→ create tech debt ticket)
 
@@ -303,7 +304,7 @@ Use to filter learnings by codebase region:
 4. **Link related files** - makes fixes easier
 5. **Suggest concrete fixes** - not just "investigate"
 6. **Use consistent categories** - enables filtering
-7. **Promote aggressively** - if in doubt, add to CLAUDE.md
+7. **Promote aggressively** - if in doubt, add to CLAUDE.md or .github/copilot-instructions.md
 8. **Review regularly** - stale learnings lose value
 
 ## Gitignore Options

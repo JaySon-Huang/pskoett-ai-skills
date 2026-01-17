@@ -26,3 +26,4 @@ Each skill folder must contain:
 - No README.md files inside skill folders (per spec)
 - Use lowercase with hyphens for skill names
 - Keep SKILL.md under 500 lines; use references/ for detailed content
+- When tool calls are referenced, add Copilot-compatible guidance for asking in chat

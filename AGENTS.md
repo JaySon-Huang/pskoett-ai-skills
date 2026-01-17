@@ -22,6 +22,7 @@ Check against the spec at https://agentskills.io/specification:
 - `name` is lowercase, hyphens only, matches folder
 - `description` explains what AND when to use
 - No README.md or other auxiliary files in skill folder
+- Provider guidance should cover Copilot when tool calls are referenced
 
 ## Self-Improvement Workflow
 

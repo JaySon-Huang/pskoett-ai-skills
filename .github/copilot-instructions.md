@@ -27,3 +27,4 @@ The `name` field in frontmatter must match the folder name.
 - Follow the Agent Skills specification at agentskills.io
 - No README.md files inside skill folders (per spec)
 - Use lowercase with hyphens for skill names
+- When a skill references tool calls, add Copilot-compatible guidance to ask in chat

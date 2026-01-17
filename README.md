@@ -18,6 +18,7 @@ skills/
 | Skill | Description |
 |-------|-------------|
 | [self-improvement](skills/self-improvement/) | Captures learnings, errors, and corrections to enable continuous improvement |
+| [plan-interview](skills/plan-interview/) | Runs a structured interview before planning non-trivial implementations |
 
 ## Usage
 

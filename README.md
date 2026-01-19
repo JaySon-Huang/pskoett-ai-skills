@@ -17,12 +17,36 @@ skills/
 
 | Skill | Description |
 |-------|-------------|
-| [self-improvement](skills/self-improvement/) | Captures learnings, errors, and corrections to enable continuous improvement |
+| [self-improvement](skills/self-improvement/) | Captures learnings and errors with hook-based activation and automatic skill extraction |
 | [plan-interview](skills/plan-interview/) | Runs a structured interview before planning non-trivial implementations |
 
 ## Usage
 
 To use a skill, add it to your agent's configuration or reference it directly.
+
+### Self-Improvement with Hooks
+
+The self-improvement skill supports automatic activation via hooks. Add to `.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "./skills/self-improvement/scripts/activator.sh"
+      }]
+    }]
+  }
+}
+```
+
+Features:
+- **Hook activation**: Automatic reminders to evaluate learnings after tasks
+- **Error detection**: PostToolUse hook detects command failures
+- **Skill extraction**: Promote high-value learnings to reusable skills
+- **Multi-agent support**: Works with Claude Code, Codex CLI, and GitHub Copilot
 
 ## Contributing
 

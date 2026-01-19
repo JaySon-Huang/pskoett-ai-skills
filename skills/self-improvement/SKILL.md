@@ -322,3 +322,179 @@ Don't add to .gitignore - learnings become shared knowledge.
 .learnings/*.md
 !.learnings/.gitkeep
 ```
+
+## Hook Integration
+
+Enable automatic reminders through agent hooks. This is **opt-in** - you must explicitly configure hooks.
+
+### Quick Setup (Claude Code / Codex)
+
+Create `.claude/settings.json` in your project:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "./skills/self-improvement/scripts/activator.sh"
+      }]
+    }]
+  }
+}
+```
+
+This injects a learning evaluation reminder after each prompt (~50-100 tokens overhead).
+
+### Full Setup (With Error Detection)
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [{
+      "matcher": "",
+      "hooks": [{
+        "type": "command",
+        "command": "./skills/self-improvement/scripts/activator.sh"
+      }]
+    }],
+    "PostToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "./skills/self-improvement/scripts/error-detector.sh"
+      }]
+    }]
+  }
+}
+```
+
+### Available Hook Scripts
+
+| Script | Hook Type | Purpose |
+|--------|-----------|---------|
+| `scripts/activator.sh` | UserPromptSubmit | Reminds to evaluate learnings after tasks |
+| `scripts/error-detector.sh` | PostToolUse (Bash) | Triggers on command errors |
+
+See `references/hooks-setup.md` for detailed configuration and troubleshooting.
+
+## Automatic Skill Extraction
+
+When a learning is valuable enough to become a reusable skill, extract it using the provided helper.
+
+### Skill Extraction Criteria
+
+A learning qualifies for skill extraction when ANY of these apply:
+
+| Criterion | Description |
+|-----------|-------------|
+| **Recurring** | Has `See Also` links to 2+ similar issues |
+| **Verified** | Status is `resolved` with working fix |
+| **Non-obvious** | Required actual debugging/investigation to discover |
+| **Broadly applicable** | Not project-specific; useful across codebases |
+| **User-flagged** | User says "save this as a skill" or similar |
+
+### Extraction Workflow
+
+1. **Identify candidate**: Learning meets extraction criteria
+2. **Run helper** (or create manually):
+   ```bash
+   ./skills/self-improvement/scripts/extract-skill.sh skill-name --dry-run
+   ./skills/self-improvement/scripts/extract-skill.sh skill-name
+   ```
+3. **Customize SKILL.md**: Fill in template with learning content
+4. **Update learning**: Set status to `promoted_to_skill`, add `Skill-Path`
+5. **Verify**: Read skill in fresh session to ensure it's self-contained
+
+### Manual Extraction
+
+If you prefer manual creation:
+
+1. Create `skills/<skill-name>/SKILL.md`
+2. Use template from `assets/SKILL-TEMPLATE.md`
+3. Follow [Agent Skills spec](https://agentskills.io/specification):
+   - YAML frontmatter with `name` and `description`
+   - Name must match folder name
+   - No README.md inside skill folder
+
+### Extraction Detection Triggers
+
+Watch for these signals that a learning should become a skill:
+
+**In conversation:**
+- "Save this as a skill"
+- "I keep running into this"
+- "This would be useful for other projects"
+- "Remember this pattern"
+
+**In learning entries:**
+- Multiple `See Also` links (recurring issue)
+- High priority + resolved status
+- Category: `best_practice` with broad applicability
+- User feedback praising the solution
+
+### Skill Quality Gates
+
+Before extraction, verify:
+
+- [ ] Solution is tested and working
+- [ ] Description is clear without original context
+- [ ] Code examples are self-contained
+- [ ] No project-specific hardcoded values
+- [ ] Follows skill naming conventions (lowercase, hyphens)
+
+## Multi-Agent Support
+
+This skill works across different AI coding agents with agent-specific activation.
+
+### Claude Code
+
+**Activation**: Hooks (UserPromptSubmit, PostToolUse)
+**Setup**: `.claude/settings.json` with hook configuration
+**Detection**: Automatic via hook scripts
+
+### Codex CLI
+
+**Activation**: Hooks (same pattern as Claude Code)
+**Setup**: `.codex/settings.json` with hook configuration
+**Detection**: Automatic via hook scripts
+
+### GitHub Copilot
+
+**Activation**: Manual (no hook support)
+**Setup**: Add to `.github/copilot-instructions.md`:
+
+```markdown
+## Self-Improvement
+
+After solving non-obvious issues, consider logging to `.learnings/`:
+1. Use format from self-improvement skill
+2. Link related entries with See Also
+3. Promote high-value learnings to skills
+
+Ask in chat: "Should I log this as a learning?"
+```
+
+**Detection**: Manual review at session end
+
+### Agent-Agnostic Guidance
+
+Regardless of agent, apply self-improvement when you:
+
+1. **Discover something non-obvious** - solution wasn't immediate
+2. **Correct yourself** - initial approach was wrong
+3. **Learn project conventions** - discovered undocumented patterns
+4. **Hit unexpected errors** - especially if diagnosis was difficult
+5. **Find better approaches** - improved on your original solution
+
+### Copilot Chat Integration
+
+For Copilot users, add this to your prompts when relevant:
+
+> After completing this task, evaluate if any learnings should be logged to `.learnings/` using the self-improvement skill format.
+
+Or use quick prompts:
+- "Log this to learnings"
+- "Create a skill from this solution"
+- "Check .learnings/ for related issues"

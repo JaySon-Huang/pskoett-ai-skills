@@ -44,7 +44,7 @@ Defines the metrics/items measured in each snapshot.
 - `sentiment`: Developer sentiment scores (Deep work, Change Confidence, etc.)
 - `workflow`: Workflow-specific metrics (Review wait time, CI wait time, etc.)
 - `workflow_averages`: Aggregated workflow metrics
-- `csat`: Customer satisfaction for tools (GitHub Copilot, Jira, Datadog, etc.)
+- `csat`: Customer satisfaction for tools (e.g., code editors, issue trackers, CI/CD tools)
 
 ## dx_snapshot_team_scores
 Scores per team per snapshot item with benchmarks.

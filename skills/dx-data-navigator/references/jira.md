@@ -1,7 +1,7 @@
-# Jira Integration
+# Issue Tracking Integration
 
 ## Overview
-Jira project management data including issues, sprints, boards, and workflow tracking.
+Project management data including issues, sprints, boards, and workflow tracking (e.g., Jira).
 
 ## jira_issues
 Jira issue/ticket data.

@@ -1,7 +1,7 @@
 # AI Tools and Adoption
 
 ## Overview
-Tracking AI tool usage, adoption rates, and impact metrics including GitHub Copilot.
+Tracking AI coding assistant usage, adoption rates, and impact metrics (e.g., GitHub Copilot).
 
 ## ai_tools
 AI tool definitions.
@@ -50,7 +50,7 @@ GROUP BY t.name ORDER BY active_users DESC;
 Custom AI tool metrics (same structure as ai_tool_daily_metrics).
 
 ## github_copilot_daily_usages
-GitHub Copilot specific daily usage.
+AI coding assistant daily usage (GitHub Copilot example).
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -77,10 +77,10 @@ WHERE date > NOW() - INTERVAL '30 days';
 ```
 
 ## github_copilot_usages
-Aggregated Copilot usage metrics.
+Aggregated AI assistant usage metrics.
 
 ## github_copilot_usage_breakdowns
-Detailed Copilot usage breakdowns (by language, editor, etc.).
+Detailed AI assistant usage breakdowns (by language, editor, etc.).
 
 ## AI Adoption Tracking via dx_users
 

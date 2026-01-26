@@ -1,7 +1,7 @@
 # Pull Requests and Code Review
 
 ## Overview
-Pull request data from GitHub and other sources, including review metrics and cycle times.
+Pull request data from source control platforms (e.g., GitHub), including review metrics and cycle times.
 
 ## pull_requests
 Normalized pull request data across sources.

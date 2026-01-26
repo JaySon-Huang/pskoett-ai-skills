@@ -1,7 +1,7 @@
-# Issues and GitHub Issues
+# Issues
 
 ## Overview
-Issue tracking data from multiple sources including the normalized `issues` table and GitHub-specific issue data.
+Issue tracking data from multiple sources including the normalized `issues` table and source control issue data (e.g., GitHub Issues).
 
 ## issues
 Normalized issue data across sources.
@@ -58,10 +58,10 @@ Aggregated issue lifecycle metrics.
 
 ---
 
-## GitHub Issues
+## Source Control Issues
 
 ### github_issues
-GitHub issue data.
+Source control issue data (e.g., GitHub Issues).
 
 | Column | Type | Description |
 |--------|------|-------------|

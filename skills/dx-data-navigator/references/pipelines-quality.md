@@ -1,7 +1,7 @@
 # Pipelines and Code Quality
 
 ## Overview
-CI/CD pipeline data and code quality metrics from SonarCloud.
+CI/CD pipeline data and code quality metrics (e.g., SonarCloud).
 
 ## pipeline_runs
 CI/CD pipeline execution records.
@@ -64,7 +64,7 @@ WHERE finished_at IS NOT NULL AND started_at > NOW() - INTERVAL '30 days';
 ```
 
 ## pipeline_sources
-Pipeline source definitions (GitHub Actions, Jenkins, etc.).
+Pipeline source definitions (e.g., CI/CD platforms).
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -77,10 +77,10 @@ Pipeline stage definitions for detailed analysis.
 
 ---
 
-## SonarCloud Code Quality
+## Code Quality
 
 ### sonarcloud_projects
-SonarCloud project definitions.
+Code quality project definitions (e.g., SonarCloud).
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -90,7 +90,7 @@ SonarCloud project definitions.
 | organization_id | bigint | FK to sonarcloud_organizations |
 
 ### sonarcloud_issues
-Code quality issues detected by SonarCloud.
+Code quality issues detected by static analysis tools.
 
 | Column | Type | Description |
 |--------|------|-------------|

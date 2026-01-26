@@ -1,6 +1,6 @@
 ---
 name: dx-data-navigator
-description: Query Developer Experience (DX) data via the DX Data MCP server PostgreSQL database. Use this skill when analyzing developer productivity metrics, team performance, PR/code review metrics, deployment frequency, incident data, AI tool adoption, survey responses, DORA metrics, or any engineering analytics. Triggers on questions about DX scores, team comparisons, cycle times, code quality, developer sentiment, GitHub Copilot adoption, sprint velocity, or engineering KPIs.
+description: Query Developer Experience (DX) data via the DX Data MCP server PostgreSQL database. Use this skill when analyzing developer productivity metrics, team performance, PR/code review metrics, deployment frequency, incident data, AI tool adoption, survey responses, DORA metrics, or any engineering analytics. Triggers on questions about DX scores, team comparisons, cycle times, code quality, developer sentiment, AI coding assistant adoption, sprint velocity, or engineering KPIs.
 ---
 
 # DX Data Navigator
@@ -78,7 +78,7 @@ Survey snapshots with team scores, benchmarks, and sentiment data.
 - `sentiment`: Deep work, Change Confidence, Documentation, Cross-team collaboration, Customer focus, Decision-making, etc.
 - `workflow`: Review wait time, CI wait time, Deploy frequency, PR merge frequency, AI time savings, Red tape, etc.
 - `workflow_averages`: Raw average values for workflow metrics (actual numbers, not percentiles)
-- `csat`: Tool satisfaction (GitHub Copilot, Jira, Datadog, Confluence, SonarCube, etc.)
+- `csat`: Tool satisfaction scores (e.g., code editors, issue trackers, CI/CD tools)
 
 ```sql
 -- Latest snapshot info
@@ -205,8 +205,8 @@ WHERE started_at > NOW() - INTERVAL '90 days' AND deleted = false
 GROUP BY priority ORDER BY priority;
 ```
 
-### AI Tools / GitHub Copilot
-GitHub Copilot and AI tool adoption tracking.
+### AI Tools
+AI coding assistant adoption tracking (e.g., GitHub Copilot).
 
 **Key tables:** `ai_tools`, `ai_tool_daily_metrics`, `github_copilot_daily_usages`, `github_users`
 
@@ -249,8 +249,8 @@ WHERE date > NOW() - INTERVAL '90 days'
 GROUP BY week ORDER BY week;
 ```
 
-### Jira
-Project management data including issues, sprints, and cycle times.
+### Issue Tracking
+Project management data including issues, sprints, and cycle times (e.g., Jira).
 
 **Key tables:** `jira_issues`, `jira_projects`, `jira_sprints`, `jira_issue_sprints`, `jira_issue_types`, `jira_statuses`
 
@@ -303,7 +303,7 @@ ORDER BY t.name, e.name;
 ```
 
 ### Pipelines and Code Quality
-CI/CD pipeline runs and SonarCloud code quality metrics.
+CI/CD pipeline runs and code quality metrics (e.g., SonarCloud).
 
 **Key tables:** `pipeline_runs`, `sonarcloud_issues`, `sonarcloud_projects`, `sonarcloud_project_metrics`
 
@@ -323,8 +323,8 @@ FROM pipeline_runs WHERE started_at > NOW() - INTERVAL '90 days'
 GROUP BY week ORDER BY week;
 ```
 
-### GitHub Issues
-Normalized issue data and GitHub-specific issues.
+### Issues
+Normalized issue data from source control platforms (e.g., GitHub Issues).
 
 **Key tables:** `issues`, `github_issues`, `github_issue_labels`, `github_labels`
 
@@ -337,8 +337,8 @@ FROM issues WHERE completed > NOW() - INTERVAL '90 days'
 GROUP BY week ORDER BY week;
 ```
 
-### Confluence
-Documentation and knowledge base activity.
+### Documentation
+Documentation and knowledge base activity (e.g., Confluence, wikis).
 
 **Key tables:** `confluence_spaces`, `confluence_pages`, `confluence_page_versions`, `confluence_users`, `confluence_page_labels`
 
@@ -460,8 +460,8 @@ For detailed schema documentation, read these files:
 | Teams/Users | references/teams-users.md | Team structure, user profiles, AI adoption dates |
 | Pull Requests | references/pull-requests.md | PR metrics, reviews, cycle times |
 | Deployments | references/deployments-incidents.md | Deploy frequency, incidents, DORA metrics |
-| AI Tools | references/ai-tools.md | Copilot usage, AI adoption tracking |
-| Jira | references/jira.md | Issues, sprints, story points |
+| AI Tools | references/ai-tools.md | AI assistant usage, adoption tracking |
+| Issue Tracking | references/jira.md | Issues, sprints, story points |
 | Catalog | references/catalog.md | Services, ownership, domains |
-| Pipelines/Quality | references/pipelines-quality.md | CI/CD runs, SonarCloud issues |
-| Issues | references/issues-github.md | GitHub issues, labels |
+| Pipelines/Quality | references/pipelines-quality.md | CI/CD runs, code quality issues |
+| Issues | references/issues-github.md | Source control issues, labels |

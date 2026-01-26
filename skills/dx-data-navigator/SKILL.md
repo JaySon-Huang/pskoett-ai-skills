@@ -1,6 +1,6 @@
 ---
 name: dx-data-navigator
-description: Query TV 2's Developer Experience (DX) data via the DX Data MCP server PostgreSQL database. Use this skill when analyzing developer productivity metrics, team performance, PR/code review metrics, deployment frequency, incident data, AI tool adoption, survey responses, DORA metrics, or any engineering analytics. Triggers on questions about DX scores, team comparisons, cycle times, code quality, developer sentiment, GitHub Copilot adoption, sprint velocity, or engineering KPIs.
+description: Query Developer Experience (DX) data via the DX Data MCP server PostgreSQL database. Use this skill when analyzing developer productivity metrics, team performance, PR/code review metrics, deployment frequency, incident data, AI tool adoption, survey responses, DORA metrics, or any engineering analytics. Triggers on questions about DX scores, team comparisons, cycle times, code quality, developer sentiment, GitHub Copilot adoption, sprint velocity, or engineering KPIs.
 ---
 
 # DX Data Navigator
@@ -36,7 +36,7 @@ FROM dx_snapshot_team_scores ts
 JOIN dx_snapshot_teams st ON ts.team_id = st.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
-  AND st.name = 'Developer Tooling'
+  AND st.name = 'Your Team Name'
   AND i.item_type = 'core4'
 GROUP BY st.name, i.name;
 ```
@@ -50,9 +50,12 @@ JOIN dx_teams t ON u.team_id = t.id
 WHERE p.merged IS NOT NULL GROUP BY t.name;
 ```
 
-## Known Team Names
+## Discovering Team Names
 
-Key teams: Developer Tooling, Developer Cloud Platform, Tech Enabling, Observability, Play Content & Search, Play Discovery & Live, News Articles Video & Live, Sport Weather & Tv Guide, Channel Assembly & Distribution, Compute Storage & Identity, and others. Query `SELECT name FROM dx_teams WHERE deleted_at IS NULL` to see all.
+Query the database to find available teams:
+```sql
+SELECT name FROM dx_teams WHERE deleted_at IS NULL ORDER BY name;
+```
 
 ## Data Domains
 
@@ -88,7 +91,7 @@ FROM dx_snapshot_team_scores ts
 JOIN dx_snapshot_teams st ON ts.team_id = st.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
-  AND st.name = 'Developer Tooling'
+  AND st.name = 'Your Team Name'
   AND i.item_type = 'core4'
 GROUP BY st.name, i.name;
 
@@ -124,7 +127,7 @@ WHERE ai_heavy_adoption_date IS NOT NULL ORDER BY ai_heavy_adoption_date DESC;
 -- Team members
 SELECT u.name, u.email FROM dx_users u
 JOIN dx_teams t ON u.team_id = t.id
-WHERE t.name = 'Developer Tooling';
+WHERE t.name = 'Your Team Name';
 ```
 
 ### Pull Requests
@@ -177,7 +180,7 @@ Deployment frequency, success rates, and incident tracking for DORA metrics.
 
 **Deployment environments:** dev, stage, prod, production
 **Incident priorities:** '1 - Critical', '2 - High', '3 - Moderate', '4 - Low', '5 - Planning'
-**Incident source:** servicenow
+**Incident source:** Check `SELECT DISTINCT source FROM incidents` for available sources
 
 ```sql
 -- Deploy frequency by environment
@@ -369,7 +372,7 @@ ORDER BY pv.created_at DESC LIMIT 20;
 ## Data Quality Notes
 
 **Known issues:**
-- Some team names have typos (e.g., "Observerbility" vs "Observability")
+- Some team names may have typos - verify names by querying `dx_teams`
 - `incident_services` table is empty - incidents cannot be linked to specific services
 - `dx_users` AI adoption date fields are mostly NULL - use `github_copilot_daily_usages` instead
 - DX survey scores may have duplicates - always use GROUP BY with MAX() aggregation
@@ -418,7 +421,7 @@ FROM dx_snapshot_team_scores ts
 JOIN dx_snapshots s ON ts.snapshot_id = s.id
 JOIN dx_snapshot_teams st ON ts.team_id = st.id AND st.snapshot_id = s.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = s.id
-WHERE st.name = 'Developer Tooling'
+WHERE st.name = 'Your Team Name'
   AND i.item_type = 'core4'
   AND ts.score IS NOT NULL
 ORDER BY s.end_date, i.name;

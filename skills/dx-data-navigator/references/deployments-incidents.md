@@ -20,7 +20,7 @@ Deployment records across environments.
 | success | boolean | Deployment success status |
 | service | text | Service name |
 | source_url | text | Source URL |
-| source_name | text | Source system (argoCD, Github Actions) |
+| source_name | text | Source system |
 | integration_branch | text | Branch deployed |
 | attributed_at | timestamp | Attribution time |
 | deployment_inference_rule_id | bigint | Inference rule used |
@@ -67,14 +67,14 @@ Additional deployment metadata.
 Rules for inferring deployments from other data.
 
 ## incidents
-Incident records from ServiceNow or other sources.
+Incident records from external sources.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | bigint | Primary key |
 | name | text | Incident title/name |
 | priority | text | Priority level (1 - Critical, 2 - High, 3 - Moderate, 4 - Low, 5 - Planning) |
-| source | text | Source system (servicenow) |
+| source | text | Source system |
 | source_id | text | External ID |
 | source_url | text | Link to incident |
 | started_at | timestamp | Incident start time |

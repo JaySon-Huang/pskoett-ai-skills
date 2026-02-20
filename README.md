@@ -23,6 +23,7 @@ skills/
 
 | Skill | Description |
 |-------|-------------|
+| [agent-teams-simplify-and-harden](skills/agent-teams-simplify-and-harden/) | Implementation + audit loop using parallel agent teams with structured simplify, harden, and document passes |
 | [dx-data-navigator](skills/dx-data-navigator/) | Query DX Data Cloud for developer productivity metrics, DORA metrics, PR/deployment data, and engineering analytics |
 | [plan-interview](skills/plan-interview/) | Runs a structured interview before planning non-trivial implementations |
 | [self-improvement](skills/self-improvement/) | Captures learnings and errors with hook-based activation and automatic skill extraction |

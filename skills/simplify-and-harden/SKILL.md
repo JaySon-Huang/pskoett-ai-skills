@@ -1,6 +1,6 @@
 ---
 name: simplify-and-harden
-description: "Post-completion self-review that runs simplify, harden, and micro-documentation passes on non-trivial code changes. Use when: a coding task is complete and you want a bounded quality and security sweep before signaling done."
+description: "Post-completion self-review for coding agents that runs simplify, harden, and micro-documentation passes on non-trivial code changes. Use when: a coding task is complete in a general agent session and you want a bounded quality and security sweep before signaling done. For CI pipeline execution, use simplify-and-harden-ci."
 ---
 
 # Agent Skill: Simplify & Harden
@@ -9,6 +9,12 @@ description: "Post-completion self-review that runs simplify, harden, and micro-
 
 ```bash
 npx skills add pskoett/pskoett-ai-skills/simplify-and-harden
+```
+
+For CI-only execution, use:
+
+```bash
+npx skills add pskoett/pskoett-ai-skills/simplify-and-harden-ci
 ```
 
 ## Metadata
@@ -115,7 +121,7 @@ The agent reviews its own work and asks:
 
 For each finding, the agent categorizes it as:
 
-- **Cosmetic fix** (dead code removal, unused imports, naming, control flow tightening, visibility reduction) -- in interactive mode, applied automatically if within budget; in headless mode, flagged and not applied. This is the bread and butter of the skill.
+- **Cosmetic fix** (dead code removal, unused imports, naming, control flow tightening, visibility reduction) -- applied automatically if within budget. This is the bread and butter of the skill.
 - **Refactor** (consolidation, restructuring, abstraction changes) -- proposed ONLY when the agent determines it is genuinely necessary or the benefit is substantial. A refactor is not the default action. The bar is: "Would a senior engineer look at this and say the current state is clearly wrong, not just imperfect?"
 
 **Refactor Stop Hook (mandatory):**
@@ -147,7 +153,7 @@ The agent does not batch refactor proposals. Each refactor is presented individu
 
 If the human selects `skip all refactors`, the agent skips remaining refactor proposals and moves to the Harden pass. Skipped refactors still appear in the output summary as `flagged` with status `skipped_by_user`.
 
-**Cosmetic fixes** do not trigger the stop hook. In interactive mode they are applied silently (and reported in the output summary); in headless mode they are flagged without code changes. The rationale: removing an unused import is not a judgment call. Restructuring code is.
+**Cosmetic fixes** do not trigger the stop hook. They are applied silently (and reported in the output summary). The rationale: removing an unused import is not a judgment call. Restructuring code is.
 
 ## Pass 2: Harden
 
@@ -179,7 +185,7 @@ The agent reviews its own work and asks:
 
 For each finding, the agent categorizes it as:
 
-- **Patch** (adding a validation check, escaping output, removing a hardcoded secret) -- in interactive mode, applied automatically if within budget; in headless mode, flagged and not applied
+- **Patch** (adding a validation check, escaping output, removing a hardcoded secret) -- applied automatically if within budget
 - **Security refactor** (restructuring auth flow, replacing a vulnerable pattern with a new approach, changing data handling architecture) -- ALWAYS requires human approval before proceeding
 
 The same **Refactor Stop Hook** from the Simplify pass applies here. Security refactors are presented individually with the added context of severity and attack vector:
@@ -207,7 +213,7 @@ The same **Refactor Stop Hook** from the Simplify pass applies here. Security re
 - **Flagged as critical** -- findings the agent cannot safely patch without human input (noted in output regardless of approval)
 - **Flagged as advisory** -- hardening opportunities that are not active vulnerabilities
 
-Security patches (not refactors) are prioritized over simplification changes when budget is constrained in interactive mode. In headless mode, this priority affects report ordering only.
+Security patches (not refactors) are prioritized over simplification changes when budget is constrained.
 
 ## Pass 3: Document (Micro-pass)
 
@@ -287,6 +293,29 @@ simplify_and_harden:
         line: 93
         comment: "// WORKAROUND: Legacy API returns dates as strings without timezone. Assuming UTC until migration completes (see TICKET-1234)"
 
+  learning_loop:
+    target_skill: "self-improvement"
+    log_file: ".learnings/LEARNINGS.md"
+    candidates:
+      - pattern_key: "simplify.dead_code"
+        pass: "simplify"
+        finding_type: "dead_code"
+        severity: "low"
+        source_file: "src/api/handler.ts"
+        source_line: 12
+        suggested_rule: "Remove dead code and unused imports before finalizing a task."
+      - pattern_key: "harden.input_validation"
+        pass: "harden"
+        finding_type: "input_validation"
+        severity: "high"
+        source_file: "src/api/handler.ts"
+        source_line: 62
+        suggested_rule: "Validate and bound-check external inputs before use."
+    recurrence_window_days: 30
+    promotion_threshold:
+      min_occurrences: 3
+      min_distinct_tasks: 2
+
   summary:
     simplify_applied: 1
     simplify_cosmetic_applied: 1
@@ -305,80 +334,46 @@ simplify_and_harden:
     human_prompts_rejected: 0
     human_prompts_skipped: 1
     human_prompts_timed_out: 1
+    learning_candidates: 2
+    learning_promotions_recommended: 1
     review_followup_required: true
 ```
 
 Set `review_followup_required` to `true` when any unresolved finding remains (critical/advisory flags, skipped or timed-out refactor proposals), or when `budget_exceeded` is `true`. Set it to `false` only when no follow-up is required.
 
-## Execution Modes
+## Self-Improvement Integration (Learning Loop)
 
-The skill behaves differently depending on whether a human is present.
+Simplify & Harden feeds its recurring quality/security findings into the
+`self-improvement` skill so repeated issues can become durable prompt rules.
 
-### Auto-detection (default)
+After each run:
 
-When `stop_hook.mode` is set to `"auto"`, the skill detects the execution context:
+1. Normalize each finding into a `pattern_key`:
+   - Simplify examples: `simplify.dead_code`, `simplify.naming`, `simplify.control_flow`
+   - Harden examples: `harden.input_validation`, `harden.authorization`, `harden.error_handling`
+2. Emit those pattern candidates in `simplify_and_harden.learning_loop.candidates`.
+3. Hand off candidates to `self-improvement`, which logs or updates entries in
+   `.learnings/LEARNINGS.md` (instead of creating duplicate one-off notes).
+4. Mark candidates as promotion-ready when they cross the recurrence threshold:
+   `>= 3` occurrences across `>= 2` distinct tasks in a 30-day window.
+5. Promote promotion-ready patterns into the agent context/system prompt files
+   (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`, or equivalent)
+   to reduce repeat issues.
 
-- **TTY detected** (terminal session, CLI) -> interactive mode
-- **No TTY** (CI runner, background job, piped output) -> headless mode
-- **Environment variable override**: `AGENT_REVIEW_MODE=interactive|headless` takes precedence over auto-detection
+This keeps Simplify & Harden focused on per-task cleanup/hardening while
+`self-improvement` owns cross-task memory and promotion.
 
-### Interactive Mode
+## Execution Model
 
-A human is at the keyboard. The skill presents refactor proposals one at a time and waits for input.
+This skill is for general coding-agent sessions where a human can approve
+refactors in-line.
 
 Behavior:
-- Refactor proposals are shown inline with diff previews
+- Refactor proposals are shown one at a time with clear rationale
 - The agent pauses and waits for `[approve]`, `[reject]`, `[show diff]`, or `[skip all refactors]`
-- Timeout after 5 minutes (configurable) -- if no response, the refactor is flagged in the summary but not applied
-- Cosmetic fixes and security patches are still auto-applied (no prompt)
+- Cosmetic fixes and straightforward security patches are applied automatically
 
-### Headless Mode
-
-No human is present. The skill runs as a scan-and-report pass with guardrails.
-
-Behavior:
-- No code changes are applied in headless mode. Cosmetic fixes, security patches, and refactors are all reported as findings.
-- Findings are categorized in the structured summary for follow-up in an interactive session or manual review.
-- The output summary is attached to the PR/commit as a review comment
-- If `block_pipeline_on` includes matching finding classes, the pipeline exits with a non-zero code
-
-Supported `block_pipeline_on` classes:
-- `critical` -> blocks when `harden.flagged_critical` is non-empty
-- `advisory` -> blocks when `harden.flagged_advisory` is non-empty
-
-This means headless mode is a true "scan and report" run for all finding types. The agent still does the analysis and writes proposals, but it does not mutate code without a human present.
-
-```
-# Example: CI pipeline that blocks on critical findings
-simplify-and-harden:
-  stop_hook:
-    mode: "headless"
-    headless:
-      finding_behavior: "block_pipeline"
-      block_pipeline_on: ["critical"]
-```
-
-```
-# Example: CLI session with fast timeout for experienced devs
-simplify-and-harden:
-  stop_hook:
-    mode: "interactive"
-    interactive:
-      timeout_seconds: 120
-      timeout_action: "reject"   # Experienced dev wants fast flow -- skip, don't flag
-```
-
-### Mode in Output
-
-The execution mode is recorded in the output schema for traceability:
-
-```yaml
-simplify_and_harden:
-  execution:
-    mode: "headless"
-    mode_source: "auto_detected"  # or "config", "env_override"
-    human_present: false
-```
+For CI pipelines and headless automation, use `simplify-and-harden-ci`.
 
 ## Agent Context File References
 
@@ -395,7 +390,7 @@ Core invariants for any agent integration:
 5. **Three passes** -- simplify, harden, document (in that order)
 6. **Structured output** -- summary of applied, approved, rejected, and flagged items
 
-Precaution: some agents may not reliably pause for approval in high-autonomy modes. Validate this behavior before production use, and fall back to headless flag-only mode if needed.
+Precaution: some agents may not reliably pause for approval in high-autonomy modes. Validate this behavior before production use.
 
 ## Agent Compatibility
 
@@ -406,9 +401,6 @@ This skill is designed to work with any coding agent that follows a task-based w
 
 **Prompt-based integration** (chat-based agents without formal skill APIs):
 - Any LLM-based coding assistant that accepts post-task instructions -- the skill's logic can be injected as a follow-up prompt after the agent signals completion
-
-**CI/CD integration** (headless mode):
-- Any pipeline that produces a diff and can run an LLM evaluation pass -- GitHub Actions, GitLab CI, Jenkins, CircleCI, etc.
 
 The output schema is agent-agnostic YAML. Consuming tools only need to parse the structured summary.
 
@@ -454,8 +446,7 @@ After completing the task, run the Simplify & Harden review:
    when the code is genuinely wrong or the improvement is substantial. 
    If you propose one, describe it and ask for approval before applying.
 3. Harden: Check for input validation gaps, injection vectors, auth issues, 
-   exposed secrets, and error handling problems. In interactive mode, apply
-   simple patches directly. In headless mode, report patches as follow-up.
+   exposed secrets, and error handling problems. Apply simple patches directly.
    For security refactors that change structure, describe the issue with
    severity and ask for approval.
 4. Document: Add up to 5 comments on non-obvious decisions.
@@ -463,14 +454,9 @@ After completing the task, run the Simplify & Harden review:
    what you left alone.
 ```
 
-### For CI/CD pipelines
+### CI Pipeline Variant
 
-The summary output can be:
-
-- Appended to the PR description as a collapsible section
-- Posted as a PR review comment
-- Parsed by CI to block merge when `review_followup_required: true` (or by class-specific gates via `block_pipeline_on`)
-- Fed into dashboards for tracking code quality trends over time
+For GitHub Actions or other CI/headless usage, run `simplify-and-harden-ci`.
 
 ### Configuration
 
@@ -484,32 +470,21 @@ simplify-and-harden:
     max_time_seconds: 60       # Hard time limit
   simplify:
     enabled: true
-    auto_apply_cosmetic:
-      interactive: true        # Cosmetic fixes applied without prompting
-      headless: false          # Headless is scan/report only
+    auto_apply_cosmetic: true  # Cosmetic fixes applied without prompting
     refactor_requires_approval: true  # ALWAYS true -- cannot be disabled
   harden:
     enabled: true
-    auto_apply_patches:
-      interactive: true        # Simple security patches applied without prompting
-      headless: false          # Headless is scan/report only
+    auto_apply_patches: true   # Simple security patches applied without prompting
     refactor_requires_approval: true  # ALWAYS true -- cannot be disabled
-    block_on_critical: false   # Set true to require human approval on critical findings
   document:
     enabled: true
     max_comments: 5
   stop_hook:
-    mode: "auto"               # "interactive", "headless", or "auto" (detects TTY)
-    interactive:               # Used in CLI / terminal sessions
-      show_diff_preview: true
-      allow_skip_all: true
-      timeout_seconds: 300     # 5 min -- human is at the keyboard
-      timeout_action: "flag"   # Assume they stepped away, don't discard
-    headless:                  # Used in CI/CD pipelines, background runs
-      timeout_seconds: 0       # No waiting -- no human to wait for
-      timeout_action: "flag"   # All findings go to summary as follow-up
-      finding_behavior: "flag_only"   # "flag_only" or "block_pipeline"
-      block_pipeline_on: []    # Finding classes from harden flags: ["critical"], ["critical", "advisory"]
+    mode: "interactive"
+    show_diff_preview: true
+    allow_skip_all: true
+    timeout_seconds: 300       # 5 min -- human is at the keyboard
+    timeout_action: "flag"     # Assume they stepped away, don't discard
   skip_patterns:               # Glob patterns to exclude from review
     - "**/*.test.*"
     - "**/*.spec.*"
@@ -530,18 +505,11 @@ Without constraints, agents will use review passes as license for unbounded refa
 **Why separate simplify from harden?**
 They require different mindsets. Simplify asks "is this the clearest expression of my intent?" while Harden asks "how could this be exploited?" Conflating them leads to mediocre results on both. Running them sequentially also lets us prioritize security fixes when budget is tight.
 
-**Why separate interactive and headless modes?**
-The refactor approval rule is non-negotiable: refactors always require human approval. In a terminal session, approval is interactive. In CI/headless mode, the safer default is scan-and-report with no code mutations. Same principle, different expression. Auto-detection via TTY keeps the config simple for most users while the env var override handles edge cases like remote terminals that look headless but aren't.
-
-**Why still run the skill in headless/CI mode?**
-The analysis is valuable even without applying code changes. A PR comment that says "the agent noticed 3 simplification opportunities and 1 security concern" is a better starting point for code review than a blank diff. The agent already did the thinking -- don't waste it just because no human was there to approve in real time.
-
 **Why the document micro-pass?**
 Agents are terrible at documenting their reasoning unprompted. Humans reviewing agent-generated code consistently report that the biggest friction is understanding *why* a choice was made. Five comments is a trivial cost for enormous review-time savings.
 
 ## Future Considerations
 
-- **Learning loop**: Track which simplify/harden patterns recur across tasks to feed back into the agent's system prompt, reducing repeat issues
 - **Team calibration**: Allow teams to weight the review checklist (e.g., "we care more about injection vectors than naming")
 - **Diff-aware context loading**: For large codebases, intelligently load only the files and symbols relevant to the diff rather than the full project
 - **Cross-skill composition**: Simplify & Harden could feed into a "PR Description" skill that uses its summary to auto-generate meaningful PR descriptions

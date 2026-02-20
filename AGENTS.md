@@ -32,7 +32,9 @@ Public skills (`skills/`):
 - `skills/dx-data-navigator/SKILL.md` - Query DX data via MCP + SQL patterns.
 - `skills/plan-interview/SKILL.md` - Structured interview before implementation planning.
 - `skills/self-improvement/SKILL.md` - Capture learnings, errors, and feature requests.
-- `skills/simplify-and-harden/SKILL.md` - Post-completion simplify/harden quality pass.
+- `skills/self-improvement-ci/SKILL.md` - CI-only self-improvement workflow using gh-aw.
+- `skills/simplify-and-harden/SKILL.md` - Post-completion simplify/harden quality pass for general agent sessions.
+- `skills/simplify-and-harden-ci/SKILL.md` - CI-only simplify/harden workflow using gh-aw.
 - `skills/agent-teams-simplify-and-harden/SKILL.md` - Parallel implementation and audit loop.
 
 Local Claude skills (`.claude/skills/`):
@@ -46,17 +48,19 @@ Keep this section synchronized across `AGENTS.md`, `CLAUDE.md`, and `.github/cop
 ## Self-Improvement Workflow
 
 When errors or corrections occur:
-1. Log to `.learnings/ERRORS.md`, `LEARNINGS.md`, or `FEATURE_REQUESTS.md`
+1. Log to `.learnings/ERRORS.md`, `LEARNINGS.md`, or `FEATURE_REQUESTS.md`.
 2. Review and promote broadly applicable learnings to:
    - `CLAUDE.md` - project facts and conventions
    - `AGENTS.md` - workflows and automation
    - `.github/copilot-instructions.md` - Copilot context
+3. For CI-only/headless learning capture, use `skills/self-improvement-ci/SKILL.md` (gh-aw).
 
 ## Simplify and Harden Workflow
 
 When a coding task with non-trivial code changes is complete:
-1. Run `skills/simplify-and-harden/SKILL.md` for a bounded simplify/harden/document pass.
-2. For larger multi-file efforts, use `skills/agent-teams-simplify-and-harden/SKILL.md`.
-3. Treat independent review findings as the external merge gate and address or explicitly waive them.
+1. Run `skills/simplify-and-harden/SKILL.md` for a bounded simplify/harden/document pass in interactive coding sessions.
+2. For CI-only/headless runs, use `skills/simplify-and-harden-ci/SKILL.md` (gh-aw).
+3. For larger multi-file efforts, use `skills/agent-teams-simplify-and-harden/SKILL.md`.
+4. Treat independent review findings as the external merge gate and address or explicitly waive them.
 
 Keep this section synchronized across `AGENTS.md`, `CLAUDE.md`, and `.github/copilot-instructions.md`.

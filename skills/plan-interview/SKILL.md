@@ -10,6 +10,12 @@ description: |
 
 # Plan Interview Skill
 
+## Install
+
+```bash
+npx skills add pskoett/pskoett-ai-skills/plan-interview
+```
+
 ## Purpose
 
 Run a structured requirements interview before planning implementation. This ensures alignment between you and the user by gathering explicit requirements rather than making assumptions.

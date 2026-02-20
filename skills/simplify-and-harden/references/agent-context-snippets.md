@@ -11,6 +11,7 @@ These snippets are primarily for interactive coding sessions. In headless/CI mod
 - [.github/copilot-instructions.md (GitHub Copilot)](#githubcopilot-instructionsmd-github-copilot)
 - [.cursorrules / .cursor/rules (Cursor)](#cursorrules--cursorrules-cursor)
 - [.windsurfrules (Windsurf)](#windsurfrules-windsurf)
+- [OpenClaw (AGENTS.md / CLAUDE.md)](#openclaw-agentsmd--claudemd)
 - [Adapting for Other Agents](#adapting-for-other-agents)
 
 ### AGENTS.md (Generic / Multi-agent)
@@ -182,6 +183,50 @@ Before signaling task completion, review your own work:
 Scope: only files you touched. Budget: 20% max additional diff. Simplify is the 
 default. Refactors are rare and always require explicit approval.
 ```
+
+### OpenClaw (AGENTS.md / CLAUDE.md)
+
+```markdown
+## Post-Completion: Simplify & Harden
+
+Before signaling task completion in OpenClaw, run Simplify & Harden on the 
+files you changed in this task.
+
+Use this skill for coding tasks only (writing or modifying executable source
+code). Do NOT run it for general-agent work such as research, planning,
+documentation-only edits, operations/admin tasks, or other non-coding requests.
+If no executable code was changed, skip this skill.
+
+**Scope and budget:**
+- Only review files modified in this task
+- Keep additional changes under 20% of the original diff
+- Run passes in order: simplify, harden, document
+
+**Simplify (default posture):**
+- Apply lightweight cleanup first (dead code, unused imports, naming, control
+  flow)
+- In interactive sessions, apply cosmetic fixes directly
+- Do not refactor by default
+- For any refactor, STOP, describe the proposed change, and wait for explicit
+  approval before applying
+
+**Harden:**
+- Check for validation gaps, injection vectors, auth/authz issues, secrets,
+  data leaks, and race conditions
+- In interactive sessions, apply straightforward security patches directly
+- For security refactors, describe severity + attack vector and wait for
+  explicit approval
+
+**Document:**
+- Add up to 5 short comments for non-obvious decisions
+
+**Output:**
+- End with a structured summary of applied fixes, approved/rejected refactors,
+  and follow-up findings
+```
+
+OpenClaw repos commonly keep `CLAUDE.md` symlinked to `AGENTS.md`. If so,
+update `AGENTS.md` once and keep the symlink in place.
 
 ### Adapting for Other Agents
 

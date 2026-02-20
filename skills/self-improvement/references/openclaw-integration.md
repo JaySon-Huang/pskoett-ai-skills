@@ -1,14 +1,14 @@
-# Clawdbot Integration Guide
+# OpenClaw Integration Guide
 
-Complete setup and usage guide for integrating the self-improvement skill with Clawdbot's distributed learning model.
+Complete setup and usage guide for integrating the self-improvement skill with OpenClaw's distributed learning model.
 
 ## Overview
 
-Clawdbot is a terminal-based AI coding assistant that uses workspace-based prompt injection. Unlike Claude Code's hook system, Clawdbot injects context from workspace files at session start and supports inter-agent communication.
+OpenClaw is a terminal-based AI coding assistant that uses workspace-based prompt injection. Unlike Claude Code's hook system, OpenClaw injects context from workspace files at session start and supports inter-agent communication.
 
 ## Architecture Comparison
 
-| Feature | Claude Code | Clawdbot |
+| Feature | Claude Code | OpenClaw |
 |---------|------------|----------|
 | Learning storage | `.learnings/` in project | Workspace files (`~/clawd/`) |
 | Activation | Hooks (UserPromptSubmit) | Workspace injection at start |
@@ -21,7 +21,7 @@ Clawdbot is a terminal-based AI coding assistant that uses workspace-based promp
 ### Default Structure
 
 ```
-~/clawd/                          # Configurable via ~/.clawdbot/clawdbot.json
+~/clawd/                          # Configurable via ~/.openclaw/openclaw.json
 ├── AGENTS.md                    # Multi-agent coordination patterns
 ├── SOUL.md                      # Behavioral guidelines and personality
 ├── TOOLS.md                     # Tool capabilities and MCP gotchas
@@ -34,7 +34,7 @@ Clawdbot is a terminal-based AI coding assistant that uses workspace-based promp
 
 ### Configuration
 
-Edit `~/.clawdbot/clawdbot.json`:
+Edit `~/.openclaw/openclaw.json`:
 
 ```json
 {
@@ -124,7 +124,7 @@ Purpose: Tool capabilities, MCP server knowledge, integration gotchas.
 ### Capturing Learnings
 
 1. **In-session**: Log to `.learnings/` as usual (project-specific)
-2. **Cross-project**: Promote to workspace files (clawdbot)
+2. **Cross-project**: Promote to workspace files (openclaw)
 
 ### Promotion Decision Tree
 
@@ -153,7 +153,7 @@ Is the learning project-specific?
 
 ## Inter-Agent Communication
 
-Clawdbot provides tools for cross-session communication:
+OpenClaw provides tools for cross-session communication:
 
 ### sessions_list
 
@@ -196,7 +196,7 @@ When discovering something valuable in session A:
 
 ## ClawdHub Integration
 
-ClawdHub is Clawdbot's skill registry (similar to agentskills.io).
+ClawdHub is OpenClaw's skill registry (similar to agentskills.io).
 
 ### Installing Skills
 
@@ -210,17 +210,17 @@ Skills are cached in `~/clawd/skills/`.
 
 1. Create skill following agentskills.io spec
 2. Register with ClawdHub
-3. Skills become available to all Clawdbot users
+3. Skills become available to all OpenClaw users
 
 ### Skill Compatibility
 
 Skills from this repo are compatible with:
 - Claude Code (via hooks)
 - Codex CLI (via hooks)
-- Clawdbot (via ClawdHub)
+- OpenClaw (via ClawdHub)
 - GitHub Copilot (via manual setup)
 
-## Hybrid Setup: Claude Code + Clawdbot
+## Hybrid Setup: Claude Code + OpenClaw
 
 When using both tools on the same codebase:
 
@@ -230,16 +230,16 @@ When using both tools on the same codebase:
 |---------|---------------|
 | Project conventions | `CLAUDE.md` (in repo) |
 | Project learnings | `.learnings/` (in repo) |
-| Personal preferences | `SOUL.md` (clawdbot workspace) |
-| Tool knowledge | `TOOLS.md` (clawdbot workspace) |
-| Cross-project workflows | `AGENTS.md` (clawdbot workspace) |
+| Personal preferences | `SOUL.md` (openclaw workspace) |
+| Tool knowledge | `TOOLS.md` (openclaw workspace) |
+| Cross-project workflows | `AGENTS.md` (openclaw workspace) |
 
 ### Sync Strategy
 
 High-value learnings should exist in both:
 
 1. Log to `.learnings/` first (project context)
-2. If broadly applicable, also add to clawdbot workspace
+2. If broadly applicable, also add to openclaw workspace
 3. Use consistent formatting for easy grep
 
 ### Example Dual Promotion
@@ -251,7 +251,7 @@ Learning: "Playwright tests require --headed flag for debugging"
 ## [LRN-20250126-001] correction
 
 **Status**: promoted
-**Promoted**: CLAUDE.md, TOOLS.md (clawdbot)
+**Promoted**: CLAUDE.md, TOOLS.md (openclaw)
 
 ### Summary
 Playwright tests require --headed flag for visual debugging
@@ -273,7 +273,7 @@ Playwright tests require --headed flag for visual debugging
 - Trace viewer: `npx playwright show-trace trace.zip`
 ```
 
-## Detection Triggers for Clawdbot
+## Detection Triggers for OpenClaw
 
 ### Standard Triggers (same as Claude Code)
 - User corrections
@@ -281,7 +281,7 @@ Playwright tests require --headed flag for visual debugging
 - API errors
 - Knowledge gaps
 
-### Clawdbot-Specific Triggers
+### OpenClaw-Specific Triggers
 
 | Trigger | Action |
 |---------|--------|
@@ -294,7 +294,7 @@ Playwright tests require --headed flag for visual debugging
 
 ### Workspace files not injected
 
-Check `~/.clawdbot/clawdbot.json`:
+Check `~/.openclaw/openclaw.json`:
 - Verify `workspace` path exists
 - Verify `inject_files` includes desired files
 
@@ -306,6 +306,6 @@ Check `~/.clawdbot/clawdbot.json`:
 
 ### Learning not persisting
 
-Clawdbot doesn't auto-persist learnings. You must:
+OpenClaw doesn't auto-persist learnings. You must:
 1. Explicitly write to workspace files
 2. Or use `.learnings/` for project-specific storage

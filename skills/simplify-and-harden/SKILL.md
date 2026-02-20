@@ -5,6 +5,12 @@ description: "Post-completion self-review that runs simplify, harden, and micro-
 
 # Agent Skill: Simplify & Harden
 
+## Install
+
+```bash
+npx skills add pskoett/pskoett-ai-skills/simplify-and-harden
+```
+
 ## Metadata
 
 | Field         | Value                          |
@@ -396,7 +402,7 @@ Precaution: some agents may not reliably pause for approval in high-autonomy mod
 This skill is designed to work with any coding agent that follows a task-based workflow. It is not tied to any specific agent framework or product.
 
 **Programmatic integration** (agents with skill/hook APIs):
-- Claude Code, GitHub Copilot Workspace, Codex, Opencode, Cursor Agent, Windsurf, Aider, SWE-Agent, OpenHands, Devin, and any agent exposing a task completion lifecycle event
+- Claude Code, GitHub Copilot Workspace, Codex, Opencode, OpenClaw, Cursor Agent, Windsurf, Aider, SWE-Agent, OpenHands, Devin, and any agent exposing a task completion lifecycle event
 
 **Prompt-based integration** (chat-based agents without formal skill APIs):
 - Any LLM-based coding assistant that accepts post-task instructions -- the skill's logic can be injected as a follow-up prompt after the agent signals completion

@@ -5,6 +5,12 @@ description: Query Developer Experience (DX) data via the DX Data MCP server Pos
 
 # DX Data Navigator
 
+## Install
+
+```bash
+npx skills add pskoett/pskoett-ai-skills/dx-data-navigator
+```
+
 Query the DX Data Cloud PostgreSQL database using the `mcp__DX_Data__queryData` tool.
 
 ## Tool Usage

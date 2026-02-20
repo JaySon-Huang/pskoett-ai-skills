@@ -33,14 +33,14 @@ const handler: HookHandler = async (event) => {
     return;
   }
 
-  // Inject the reminder as a virtual bootstrap file
-  if (event.context.bootstrapFiles) {
-    event.context.bootstrapFiles.push({
-      name: 'SELF_IMPROVEMENT_REMINDER.md',
-      content: REMINDER_CONTENT,
-      virtual: true,
-    });
-  }
+  // Inject the reminder as a virtual bootstrap file.
+  // Some bootstrap events may not initialize bootstrapFiles.
+  event.context.bootstrapFiles ??= [];
+  event.context.bootstrapFiles.push({
+    name: 'SELF_IMPROVEMENT_REMINDER.md',
+    content: REMINDER_CONTENT,
+    virtual: true,
+  });
 };
 
 export default handler;

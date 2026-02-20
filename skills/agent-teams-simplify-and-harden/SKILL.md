@@ -1,11 +1,11 @@
 ---
 name: agent-teams-simplify-and-harden
-description: "Implementation + audit loop using parallel agent teams with structured simplify, harden, and document passes. Spawns implementation agents to do the work, then audit agents to find complexity, security gaps, and spec deviations, then loops until code compiles cleanly, all tests pass, and auditors find zero issues. Use when: implementing features from a spec or plan, hardening existing code, fixing a batch of issues, or any multi-file task that benefits from a build-verify-fix cycle."
+description: "Implementation + audit loop using parallel agent teams with structured simplify, harden, and document passes. Spawns implementation agents to do the work, then audit agents to find complexity, security gaps, and spec deviations, then loops until code compiles cleanly, all tests pass, and auditors find zero issues or the loop cap is reached. Use when: implementing features from a spec or plan, hardening existing code, fixing a batch of issues, or any multi-file task that benefits from a build-verify-fix cycle."
 ---
 
 # Agent Teams Simplify & Harden
 
-A two-phase team loop that produces production-quality code: **implement**, then **audit using simplify + harden + document passes**, then **fix audit findings**, then **re-audit**, repeating until the codebase is solid.
+A two-phase team loop that produces production-quality code: **implement**, then **audit using simplify + harden passes**, then **fix audit findings**, then **re-audit**, repeating until the codebase is solid or the loop cap is reached.
 
 ## When to Use
 
@@ -17,34 +17,45 @@ A two-phase team loop that produces production-quality code: **implement**, then
 ## The Pattern
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                  TEAM LEAD (you)                     │
-│                                                      │
-│  Phase 1: IMPLEMENT                                  │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐            │
-│  │ impl-1   │ │ impl-2   │ │ impl-3   │  ...       │
-│  │ (general │ │ (general │ │ (general │            │
-│  │ purpose) │ │ purpose) │ │ purpose) │            │
-│  └──────────┘ └──────────┘ └──────────┘            │
-│       │             │            │                   │
-│       ▼             ▼            ▼                   │
-│  ┌─────────────────────────────────────┐            │
-│  │  Verify: compile + tests            │            │
-│  └─────────────────────────────────────┘            │
-│       │                                              │
-│  Phase 2: SIMPLIFY & HARDEN AUDIT                    │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐            │
-│  │ simplify │ │ harden   │ │ spec     │  ...       │
-│  │ auditor  │ │ auditor  │ │ auditor  │            │
-│  │ (Explore)│ │ (Explore)│ │ (Explore)│            │
-│  └──────────┘ └──────────┘ └──────────┘            │
-│       │             │            │                   │
-│       ▼             ▼            ▼                   │
-│  Findings > 0?                                       │
-│    YES → back to Phase 1 with findings as tasks      │
-│    NO  → DONE. Ship it.                              │
-└─────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────┐
+│                  TEAM LEAD (you)                          │
+│                                                           │
+│  Phase 1: IMPLEMENT (+ document pass on fix rounds)       │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐                 │
+│  │ impl-1   │ │ impl-2   │ │ impl-3   │  ...            │
+│  │ (general │ │ (general │ │ (general │                 │
+│  │ purpose) │ │ purpose) │ │ purpose) │                 │
+│  └──────────┘ └──────────┘ └──────────┘                 │
+│       │             │            │                        │
+│       ▼             ▼            ▼                        │
+│  ┌─────────────────────────────────────┐                 │
+│  │  Verify: compile + tests            │                 │
+│  └─────────────────────────────────────┘                 │
+│       │                                                   │
+│  Phase 2: SIMPLIFY & HARDEN AUDIT                         │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐                 │
+│  │ simplify │ │ harden   │ │ spec     │  ...            │
+│  │ auditor  │ │ auditor  │ │ auditor  │                 │
+│  │ (Explore)│ │ (Explore)│ │ (Explore)│                 │
+│  └──────────┘ └──────────┘ └──────────┘                 │
+│       │             │            │                        │
+│       ▼             ▼            ▼                        │
+│  Exit conditions met?                                     │
+│    YES → Produce summary. Ship it.                        │
+│    NO  → back to Phase 1 with findings as tasks           │
+│          (max 3 audit rounds)                             │
+└──────────────────────────────────────────────────────────┘
 ```
+
+## Loop Limits and Exit Conditions
+
+The loop exits when ANY of these are true:
+
+1. **Clean audit**: All auditors report zero findings
+2. **Low-only round**: All findings in a round are severity `low` -- fix them inline (team lead or a single impl agent) and exit without re-auditing
+3. **Loop cap reached**: 3 audit rounds have completed. After the third round, fix remaining critical/high findings inline and exit. Log any unresolved medium/low findings in the final summary.
+
+**Budget guidance:** Track the cumulative diff growth across rounds. If fix rounds have added more than 30% on top of the original implementation diff, tighten the scope: skip medium/low simplify findings and focus only on harden patches and spec gaps.
 
 ## Step-by-Step Procedure
 
@@ -90,8 +101,10 @@ Task tool (spawn teammate):
     After completing each task, mark it completed and check for more.
 
     Quality gates:
-    - Code must compile cleanly
-    - Tests must pass
+    - Code must compile cleanly (substitute your project's compile
+      command, e.g. bunx tsc --noEmit, cargo build, go build ./...)
+    - Tests must pass (substitute your project's test command,
+      e.g. bun test, pytest, go test ./...)
     - Follow existing code patterns and conventions
 
     When all your tasks are done, notify the team lead.
@@ -104,6 +117,12 @@ Monitor agent messages. When all implementation agents report done:
 1. Run compile/type checks to verify clean build
 2. Run tests to verify all pass
 3. If either fails, fix or assign fixes before proceeding
+
+Before spawning auditors, collect the list of files modified in this session:
+```bash
+git diff --name-only <base-branch>  # or: git diff --name-only HEAD~N
+```
+You will pass this file list to each auditor.
 
 ### 5. Spawn Audit Agents
 
@@ -128,9 +147,15 @@ Task tool (spawn teammate):
     You are a simplify auditor on the <project>-harden team.
     Your name is simplify-auditor.
 
-    Your job is to find unnecessary complexity -- NOT fix it. You are read-only.
+    Your job is to find unnecessary complexity -- NOT fix it. You are
+    read-only.
 
-    Review all modified files and check for:
+    SCOPE: Only review the following files (modified in this session).
+    Do NOT flag issues in other files, even if you notice them.
+    Files to review:
+    <paste file list here>
+
+    Review each file and check for:
 
     1. Dead code and scaffolding -- debug logs, commented-out attempts,
        unused imports, temporary variables left from iteration
@@ -161,9 +186,12 @@ Task tool (spawn teammate):
     4. What it should be (specific fix, not vague)
     5. Severity: high / medium / low
 
-    Be thorough. Check every relevant file.
+    If you notice issues outside the scoped files, list them separately
+    under "Out-of-scope observations" at the end.
+
+    Be thorough within scope. Check every listed file.
     When done, send your complete findings to the team lead.
-    If you find ZERO issues, say so explicitly.
+    If you find ZERO in-scope issues, say so explicitly.
 ```
 
 #### Harden Auditor
@@ -180,7 +208,12 @@ Task tool (spawn teammate):
     Your job is to find security and resilience gaps -- NOT fix them.
     You are read-only.
 
-    Review all modified files and check for:
+    SCOPE: Only review the following files (modified in this session).
+    Do NOT flag issues in other files, even if you notice them.
+    Files to review:
+    <paste file list here>
+
+    Review each file and check for:
 
     1. Input validation -- unvalidated external inputs (user input, API
        params, file paths, env vars), type coercion issues, missing
@@ -214,9 +247,12 @@ Task tool (spawn teammate):
     5. Attack vector (if applicable)
     6. Specific fix recommendation
 
-    Be thorough. Check every relevant file.
+    If you notice issues outside the scoped files, list them separately
+    under "Out-of-scope observations" at the end.
+
+    Be thorough within scope. Check every listed file.
     When done, send your complete findings to the team lead.
-    If you find ZERO issues, say so explicitly.
+    If you find ZERO in-scope issues, say so explicitly.
 ```
 
 #### Spec Auditor
@@ -230,21 +266,49 @@ Task tool (spawn teammate):
     You are a spec auditor on the <project>-harden team.
     Your name is spec-auditor.
 
-    Your job is to find gaps between implementation and spec -- NOT fix
-    them. You are read-only.
+    Your job is to find gaps between implementation and spec/plan --
+    NOT fix them. You are read-only.
 
-    Compare the implementation against the spec/plan. For each issue:
-    1. File and line number
-    2. What's wrong or missing
-    3. What the spec requires
-    4. Severity: critical / high / medium / low
+    SCOPE: Only review the following files (modified in this session).
+    Do NOT flag issues in other files, even if you notice them.
+    Files to review:
+    <paste file list here>
 
-    Also check for test coverage gaps: untested code paths, missing edge
-    cases, assertions that don't verify enough.
+    Review each file against the spec/plan and check for:
 
-    Be thorough. Cross-reference every spec requirement.
+    1. Missing features -- spec requirements that have no corresponding
+       implementation
+    2. Incorrect behavior -- logic that contradicts what the spec
+       describes (wrong conditions, wrong outputs, wrong error handling)
+    3. Incomplete implementation -- features that are partially built
+       but missing edge cases, error paths, or configuration the spec
+       requires
+    4. Contract violations -- API shapes, response formats, status
+       codes, or error messages that don't match the spec
+    5. Test coverage -- untested code paths, missing edge case tests,
+       assertions that don't verify enough, happy-path-only testing
+    6. Acceptance criteria gaps -- spec conditions that aren't verified
+       by any test
+
+    For each finding, categorize as:
+    - **Missing** -- feature or behavior not implemented at all
+    - **Incorrect** -- implemented but wrong
+    - **Incomplete** -- partially implemented, gaps remain
+    - **Untested** -- implemented but no test coverage
+
+    For each finding report:
+    1. File and line number (or "N/A -- not implemented")
+    2. Category (missing, incorrect, incomplete, untested)
+    3. What the spec requires (quote or reference the spec)
+    4. What the implementation does (or doesn't do)
+    5. Severity: critical / high / medium / low
+
+    If you notice issues outside the scoped files, list them separately
+    under "Out-of-scope observations" at the end.
+
+    Be thorough within scope. Cross-reference every spec requirement.
     When done, send your complete findings to the team lead.
-    If you find ZERO issues, say so explicitly.
+    If you find ZERO in-scope issues, say so explicitly.
 ```
 
 ### 6. Process Audit Findings
@@ -253,40 +317,80 @@ Collect findings from all auditors. For each finding:
 
 - **Critical/High**: Create a task and assign to an implementation agent
 - **Medium**: Create a task, include in next implementation round
-- **Low/Cosmetic**: Include in next round only if trivial to fix; otherwise note and skip
+- **Low/Cosmetic**: Include in next round only if trivial to fix; otherwise note in the final summary and skip
 
 **Refactor gate:** For findings categorized as **refactor** or **security refactor**, evaluate whether the refactor is genuinely necessary before creating a task. The bar: "Would a senior engineer say the current state is clearly wrong, not just imperfect?" Reject refactor proposals that are style preferences or marginal improvements.
 
-### 7. Document Pass
+**Exit check:** If all findings in this round are severity `low`, fix them inline and skip re-auditing (see Loop Limits).
 
-After audit findings are resolved, include a document task in the implementation round. Implementation agents should add up to 5 single-line comments per area on non-obvious decisions:
+When creating fix tasks, bundle a **document pass** into each implementation agent's work:
 
-- Logic that requires more than 5 seconds of "why does this exist?" thought
-- Workarounds or hacks, with context and ideally a TODO with conditions for removal
-- Performance-sensitive choices and why the current approach was chosen over the obvious alternative
+> After fixing your assigned issues, add up to 5 single-line comments
+> across the files you touched on non-obvious decisions:
+> - Logic that needs more than 5 seconds of "why does this exist?" thought
+> - Workarounds or hacks, with context and a TODO for removal conditions
+> - Performance choices and why the current approach was picked
+>
+> Do NOT comment on the audit fixes themselves -- only on decisions
+> from the original implementation that lack explanation.
 
-This is deliberately lightweight -- decision capture, not a documentation sprint.
+This keeps the document pass lightweight and scoped. Auditors in subsequent rounds should not flag these comments as findings.
 
-### 8. Loop
+### 7. Loop
 
 If there are findings to fix:
 
-1. Create tasks from findings (include document pass tasks)
+1. Create tasks from findings (include document pass instructions)
 2. Spawn implementation agents (or reuse idle ones via SendMessage)
 3. Wait for fixes
 4. Run compile + test verification
-5. Spawn audit agents again (fresh agents, not reused -- clean context)
-6. Repeat until auditors find zero issues
+5. Check loop limits (see "Loop Limits and Exit Conditions")
+6. If not exiting: spawn audit agents again (fresh agents, not reused -- clean context)
+7. Repeat
 
-### 9. Final Verification
+### 8. Final Verification and Summary
 
-When auditors report zero findings:
+When exit conditions are met:
 
 1. Compile / type check -- must be clean
 2. Tests -- must all pass
 3. No `// TODO` or `// FIXME` comments introduced without corresponding tasks
 
-### 10. Cleanup
+Produce a final summary for the session:
+
+```
+## Hardening Summary
+
+**Audit rounds completed:** 2 of 3 max
+**Exit reason:** Clean audit (all auditors reported zero findings)
+
+### Findings by round
+
+Round 1:
+- simplify-auditor: 4 cosmetic, 1 refactor (rejected -- style preference)
+- harden-auditor: 2 patches, 1 security refactor (approved)
+- spec-auditor: 1 missing feature
+
+Round 2:
+- simplify-auditor: 0 findings
+- harden-auditor: 0 findings
+- spec-auditor: 0 findings
+
+### Actions taken
+- Fixed: 6 findings (4 cosmetic, 2 patches, 1 security refactor, 1 missing feature -- rejected refactor excluded)
+- Skipped: 1 refactor proposal (reason: style preference, not a defect)
+- Document pass: 3 comments added across 2 files
+
+### Unresolved
+- None
+
+### Out-of-scope observations
+- <any out-of-scope items auditors flagged, for future reference>
+```
+
+Adapt the format to your context. The goal is a clear record of what was found, what was fixed, what was skipped and why, and what remains.
+
+### 9. Cleanup
 
 Send shutdown requests to all agents, then delete the team:
 
@@ -294,17 +398,6 @@ Send shutdown requests to all agents, then delete the team:
 SendMessage type: shutdown_request to each agent
 TeamDelete
 ```
-
-## Scope Constraints for Auditors
-
-Auditors MUST only review code modified in the current task. They must NOT:
-
-- Flag issues in adjacent code that was not modified
-- Pursue "while I'm here" improvements outside the diff
-- Suggest new dependencies or architectural changes
-- Make speculative flags based on patterns noticed elsewhere
-
-Auditors SHOULD flag out-of-scope concerns separately from in-scope findings so the team lead can triage them independently.
 
 ## Agent Sizing Guide
 
@@ -327,26 +420,29 @@ More agents = more parallelism but more coordination overhead. For most tasks, 2
 - **Assign tasks before spawning** -- set `owner` on tasks via TaskUpdate so agents know what to work on immediately
 - **Simplify-first posture** -- when processing audit findings, prioritize cosmetic cleanups that reduce noise before tackling refactors. Cleanup is the default, refactoring is the exception
 - **Security over style** -- when budget or time is constrained, prioritize harden findings over simplify findings
+- **Pass the file list** -- always give auditors the explicit list of modified files. Don't rely on them figuring out scope on their own.
 
 ## Example: Implementing Spec Features
 
 ```
-1. Read spec, identify 8 features to implement
-2. TeamCreate: "feature-harden"
-3. TaskCreate x8 (one per feature)
-4. Spawn 3 impl agents, assign ~3 tasks each
-5. Wait → all done → compile clean → tests pass
-6. Spawn 3 auditors: simplify-auditor, harden-auditor, spec-auditor
-7. Simplify-auditor finds 4 cosmetic + 1 refactor proposal
-8. Harden-auditor finds 2 patches + 1 security refactor
-9. Spec-auditor finds 1 missing feature
-10. Team lead evaluates refactors (approve/reject), creates tasks
-11. Spawn 2 impl agents for fixes + document pass
-12. Wait → compile clean → tests pass
-13. Spawn 3 auditors again (fresh)
-14. Auditors find 0 issues
-15. Final verify: compile + tests
-16. Shutdown agents, TeamDelete
+1.  Read spec, identify 8 features to implement
+2.  TeamCreate: "feature-harden"
+3.  TaskCreate x8 (one per feature)
+4.  Spawn 3 impl agents, assign ~3 tasks each
+5.  Wait → all done → compile clean → tests pass
+6.  Collect modified file list (git diff --name-only)
+7.  Spawn 3 auditors: simplify-auditor, harden-auditor, spec-auditor
+8.  Simplify-auditor finds 4 cosmetic + 1 refactor proposal
+9.  Harden-auditor finds 2 patches + 1 security refactor
+10. Spec-auditor finds 1 missing feature
+11. Team lead evaluates refactors (approve security refactor,
+    reject simplify refactor), creates fix + document tasks
+12. Spawn 2 impl agents for fixes
+13. Wait → compile clean → tests pass
+14. Round 2: Spawn 3 fresh auditors
+15. Auditors find 0 issues → exit condition met
+16. Produce hardening summary
+17. Shutdown agents, TeamDelete
 ```
 
 ## Quality Gates (Non-Negotiable)
@@ -355,25 +451,5 @@ These must pass before the loop can exit:
 
 1. Clean compile / type check -- zero errors
 2. Tests -- zero failures
-3. All audit agents report zero findings
+3. Exit condition met (clean audit, low-only round, or loop cap reached with critical/high findings resolved)
 4. No `// TODO` or `// FIXME` comments introduced without corresponding tasks
-
-## Design Decisions
-
-**Why separate simplify and harden auditors?**
-They require different mindsets. Simplify asks "is this the clearest expression of intent?" while Harden asks "how could this be exploited?" Conflating them leads to mediocre results on both. Separate auditors produce more thorough, focused findings.
-
-**Why simplify-first posture?**
-Agents love to refactor. Given permission to "improve" code, they will restructure it. But most post-implementation improvements are cosmetic: a dead import, a bad name, a needlessly deep conditional. These account for 80%+ of the value with near-zero risk. Refactoring carries real risk -- it can introduce bugs, break tests, and bloat diffs. By making simplification the default and refactoring the exception, the loop delivers consistent value without surprise rewrites.
-
-**Why read-only audit agents?**
-If audit agents could edit files, they would "fix" issues silently, defeating the purpose of auditing. Read-only agents force findings through the team lead, who decides what to fix, what to skip, and what refactors are genuinely warranted. This prevents audit-implementation oscillation.
-
-**Why fresh audit agents each round?**
-Reused auditors carry context from previous rounds that biases them toward "already checked" areas. Fresh agents approach the codebase without assumptions, catching issues that a primed auditor might skip.
-
-**Why a document pass?**
-Agents are terrible at documenting their reasoning unprompted. Humans reviewing agent-generated code consistently report that the biggest friction is understanding *why* a choice was made. A few comments capturing non-obvious decisions is a trivial cost for enormous review-time savings.
-
-**Why scope constraints for auditors?**
-Without constraints, auditors will flag every issue in the codebase. This creates unbounded work, scope creep, and noise that buries the real findings. Scoping to modified files keeps the loop focused and finite.

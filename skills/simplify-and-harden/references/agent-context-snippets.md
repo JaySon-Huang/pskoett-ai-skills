@@ -2,6 +2,7 @@
 
 Use these snippets to wire Simplify & Harden into your active agent context file.
 Pick one snippet per agent to avoid unnecessary prompt bloat.
+These snippets are primarily for interactive coding sessions. In headless/CI mode, do not apply code changes; report findings as follow-up instead.
 
 ## Table of Contents
 
@@ -25,7 +26,8 @@ signaling done. This is mandatory for all non-trivial code changes.
 **Pass 1 -- Simplify:**
 - The default action is lightweight cleanup: remove dead code, unused imports, 
   and scaffolding. Fix unclear names. Tighten control flow. Reduce unnecessary 
-  public API surface. Apply these cosmetic fixes automatically.
+  public API surface. In interactive mode, apply these cosmetic fixes
+  automatically. In headless mode, report them as follow-up findings.
 - Refactoring (consolidation, restructuring, abstraction changes) is NOT the 
   default. Only propose a refactor when it is genuinely necessary or the benefit 
   is substantial. The bar is: would a senior engineer say the current state is 
@@ -34,7 +36,8 @@ signaling done. This is mandatory for all non-trivial code changes.
   Present refactors one at a time.
 
 **Pass 2 -- Harden:**
-- Apply simple security patches (input validation, output escaping) automatically
+- In interactive mode, apply simple security patches (input validation, output
+  escaping) automatically. In headless mode, report them as follow-up findings.
 - For any security refactor: describe the vulnerability, severity, attack vector, 
   and proposed fix. Wait for explicit approval before proceeding.
 
@@ -66,8 +69,9 @@ the Simplify & Harden review on your own work.
 ### Simplify
 Your default action is lightweight cleanup. Remove dead code, unused imports, 
 and leftover scaffolding. Fix unclear names. Flatten unnecessary nesting. 
-Reduce public surface area. Apply these directly -- they are cosmetic, not 
-structural.
+Reduce public surface area. In interactive mode, apply these directly -- they
+are cosmetic, not structural. In headless mode, report them as follow-up
+findings.
 
 Do NOT default to refactoring. A refactor (merging functions, changing 
 abstractions, restructuring logic) is only warranted when the current state is 
@@ -79,8 +83,9 @@ One refactor at a time, never batched.
 ### Harden
 Review your work for input validation gaps, injection vectors (SQL, XSS, 
 command, path traversal), auth/authz issues, hardcoded secrets, error handling 
-that leaks data, and race conditions. Apply simple patches silently. For security 
-refactors that change code structure: stop, describe the vulnerability with 
+that leaks data, and race conditions. In interactive mode, apply simple patches
+silently. In headless mode, report them as follow-up findings. For security
+refactors that change code structure: stop, describe the vulnerability with
 severity and attack vector, propose the fix, and ask me to approve.
 
 ### Document
@@ -105,7 +110,8 @@ as done. This review has three passes.
 **Simplify:** Look at the code you just wrote with fresh eyes. Your default 
 action is cleanup: remove dead code, unused imports, and scaffolding left over 
 from iteration. Fix unclear names. Flatten unnecessarily nested logic. These 
-cosmetic fixes can be applied directly. Refactoring (merging functions, changing 
+cosmetic fixes can be applied directly in interactive mode; in headless mode,
+report them as follow-up findings. Refactoring (merging functions, changing
 abstractions, restructuring) is NOT the default. Only propose a refactor when 
 the current code is genuinely wrong or the improvement is substantial -- not 
 just "slightly better." If you do propose one, describe it and ask for approval. 
@@ -113,9 +119,11 @@ One at a time.
 
 **Harden:** Check your work for security issues: unvalidated inputs, injection 
 risks, missing auth checks, hardcoded credentials, error messages that leak 
-internals, and unsafe concurrency patterns. Apply straightforward fixes (adding 
-a bounds check, escaping output) directly. For anything that requires structural 
-changes, describe the issue with severity and proposed fix, and ask for approval.
+internals, and unsafe concurrency patterns. In interactive mode, apply
+straightforward fixes (adding a bounds check, escaping output) directly. In
+headless mode, report them as follow-up findings. For anything that requires
+structural changes, describe the issue with severity and proposed fix, and ask
+for approval.
 
 **Document:** Add up to 5 short comments explaining non-obvious decisions in the 
 code you wrote. Focus on the "why", not the "what".
@@ -134,12 +142,14 @@ code you wrote. Focus on the "why", not the "what".
 After finishing a coding task, self-review before responding with "done."
 
 Simplify: Default action is cleanup -- remove dead code, unused imports, fix 
-naming, tighten control flow. Apply these directly. Refactoring is rare. Only 
-propose a refactor when the code is genuinely wrong or the win is substantial. 
+naming, tighten control flow. In interactive mode, apply these directly. In
+headless mode, report them as follow-up findings. Refactoring is rare. Only
+propose a refactor when the code is genuinely wrong or the win is substantial.
 If you do, describe it and wait for my approval. One at a time.
 
 Harden: Fix obvious security gaps (missing validation, unescaped output, bare 
-credentials) directly. For structural security fixes: describe the vulnerability, 
+credentials) directly in interactive mode; in headless mode, report them as
+follow-up findings. For structural security fixes: describe the vulnerability,
 severity, and proposed fix. Wait for approval.
 
 Document: Up to 5 comments on non-obvious decisions.
@@ -159,11 +169,13 @@ Rules:
 Before signaling task completion, review your own work:
 
 1. Simplify -- default action is cleanup: remove dead code, fix naming, tighten 
-   control flow, reduce API surface. Apply directly. Refactoring is the exception, 
-   not the rule. Only propose a refactor when genuinely necessary or the benefit 
-   is substantial. Always ask before applying.
+   control flow, reduce API surface. In interactive mode, apply directly. In
+   headless mode, report follow-up findings. Refactoring is the exception, not
+   the rule. Only propose a refactor when genuinely necessary or the benefit is
+   substantial. Always ask before applying.
 2. Harden -- check for input validation, injection vectors, auth gaps, leaked 
-   secrets, unsafe error handling. Apply simple patches directly. For structural 
+   secrets, unsafe error handling. In interactive mode, apply simple patches
+   directly. In headless mode, report follow-up findings. For structural
    security changes: ask first.
 3. Document -- up to 5 comments on non-obvious decisions.
 
@@ -192,4 +204,3 @@ that must be preserved:
 > consistently fails to stop on refactors, reinforce the instruction with stronger 
 > phrasing (e.g., "STOP. Do not proceed. Wait for my explicit approval.") or 
 > restrict it to headless/flag-only mode until behavior is verified.
-

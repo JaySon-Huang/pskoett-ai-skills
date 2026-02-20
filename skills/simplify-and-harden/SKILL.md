@@ -334,7 +334,11 @@ Behavior:
 - No code changes are applied in headless mode. Cosmetic fixes, security patches, and refactors are all reported as findings.
 - Findings are categorized in the structured summary for follow-up in an interactive session or manual review.
 - The output summary is attached to the PR/commit as a review comment
-- If `block_pipeline_on` includes matching severities, the pipeline exits with a non-zero code
+- If `block_pipeline_on` includes matching finding classes, the pipeline exits with a non-zero code
+
+Supported `block_pipeline_on` classes:
+- `critical` -> blocks when `harden.flagged_critical` is non-empty
+- `advisory` -> blocks when `harden.flagged_advisory` is non-empty
 
 This means headless mode is a true "scan and report" run for all finding types. The agent still does the analysis and writes proposals, but it does not mutate code without a human present.
 
@@ -344,7 +348,7 @@ simplify-and-harden:
   stop_hook:
     mode: "headless"
     headless:
-      refactor_behavior: "block_pipeline"
+      finding_behavior: "block_pipeline"
       block_pipeline_on: ["critical"]
 ```
 
@@ -392,7 +396,7 @@ Precaution: some agents may not reliably pause for approval in high-autonomy mod
 This skill is designed to work with any coding agent that follows a task-based workflow. It is not tied to any specific agent framework or product.
 
 **Programmatic integration** (agents with skill/hook APIs):
-- Claude Code, GitHub Copilot Workspace, Cursor Agent, Windsurf, Aider, SWE-Agent, OpenHands, Devin, and any agent exposing a task completion lifecycle event
+- Claude Code, GitHub Copilot Workspace, Codex, Opencode, Cursor Agent, Windsurf, Aider, SWE-Agent, OpenHands, Devin, and any agent exposing a task completion lifecycle event
 
 **Prompt-based integration** (chat-based agents without formal skill APIs):
 - Any LLM-based coding assistant that accepts post-task instructions -- the skill's logic can be injected as a follow-up prompt after the agent signals completion
@@ -459,7 +463,7 @@ The summary output can be:
 
 - Appended to the PR description as a collapsible section
 - Posted as a PR review comment
-- Parsed by CI to block merge when `review_followup_required: true` (or by severity-specific gates)
+- Parsed by CI to block merge when `review_followup_required: true` (or by class-specific gates via `block_pipeline_on`)
 - Fed into dashboards for tracking code quality trends over time
 
 ### Configuration
@@ -498,8 +502,8 @@ simplify-and-harden:
     headless:                  # Used in CI/CD pipelines, background runs
       timeout_seconds: 0       # No waiting -- no human to wait for
       timeout_action: "flag"   # All findings go to summary as follow-up
-      refactor_behavior: "flag_only"  # "flag_only" or "block_pipeline"
-      block_pipeline_on: []    # Severities that block: ["critical"], ["critical", "high"], etc.
+      finding_behavior: "flag_only"   # "flag_only" or "block_pipeline"
+      block_pipeline_on: []    # Finding classes from harden flags: ["critical"], ["critical", "advisory"]
   skip_patterns:               # Glob patterns to exclude from review
     - "**/*.test.*"
     - "**/*.spec.*"

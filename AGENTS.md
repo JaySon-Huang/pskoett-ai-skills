@@ -30,6 +30,7 @@ Use these as canonical references when creating or updating skills.
 
 Public skills (`skills/`):
 - `skills/dx-data-navigator/SKILL.md` - Query DX data via MCP + SQL patterns.
+- `skills/intent-framed-agent/SKILL.md` - Capture intent at execution start and monitor coding-task scope drift.
 - `skills/plan-interview/SKILL.md` - Structured interview before implementation planning.
 - `skills/self-improvement/SKILL.md` - Capture learnings, errors, and feature requests.
 - `skills/self-improvement-ci/SKILL.md` - CI-only self-improvement workflow using gh-aw.

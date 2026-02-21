@@ -53,6 +53,7 @@ Scores per team per snapshot item with benchmarks.
 |--------|------|-------------|
 | id | bigint | Primary key |
 | snapshot_id | bigint | FK to dx_snapshots |
+| snapshot_team_id | bigint | FK to dx_snapshot_teams |
 | team_id | bigint | FK to dx_teams |
 | item_id | bigint | FK to dx_snapshot_items |
 | score | numeric | The score value |
@@ -68,16 +69,17 @@ Scores per team per snapshot item with benchmarks.
 -- Get all scores for a team in latest snapshot
 SELECT i.name, i.item_type, ts.score, ts.vs_org, ts.vs_industry50
 FROM dx_snapshot_team_scores ts
-JOIN dx_snapshot_items i ON ts.item_id = i.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id
+JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 JOIN dx_snapshots s ON ts.snapshot_id = s.id
-WHERE ts.team_id = (SELECT id FROM dx_teams WHERE name = 'Team Name')
+WHERE st.name = 'Team Name'
 ORDER BY s.end_date DESC, i.item_type, i.name;
 
 -- Compare teams on a specific metric
-SELECT t.name as team, ts.score, ts.vs_org
+SELECT st.name as team, ts.score, ts.vs_org
 FROM dx_snapshot_team_scores ts
-JOIN dx_teams t ON ts.team_id = t.id
-JOIN dx_snapshot_items i ON ts.item_id = i.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id
+JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE i.name = 'Effectiveness' AND ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
 ORDER BY ts.score DESC;
 ```

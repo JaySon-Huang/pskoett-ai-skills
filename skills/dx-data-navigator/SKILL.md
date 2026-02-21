@@ -11,12 +11,12 @@ description: Query Developer Experience (DX) data via the DX Data MCP server Pos
 npx skills add pskoett/pskoett-ai-skills/dx-data-navigator
 ```
 
-Query the DX Data Cloud PostgreSQL database using the `mcp__DX_Data__queryData` tool.
+Query the DX Data Cloud PostgreSQL database using the `mcp__dx-mcp-server__queryData` tool.
 
 ## Tool Usage
 
 ```
-mcp__DX_Data__queryData(sql: "SELECT ...")
+mcp__dx-mcp-server__queryData(sql: "SELECT ...")
 ```
 
 Always query `information_schema.columns` first if uncertain about table/column names:
@@ -39,7 +39,7 @@ Three team table types exist - use the right one:
 ```sql
 SELECT st.name as team, i.name as metric, MAX(ts.score) as score, MAX(ts.vs_industry50) as vs_industry
 FROM dx_snapshot_team_scores ts
-JOIN dx_snapshot_teams st ON ts.team_id = st.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
   AND st.name = 'Your Team Name'
@@ -76,7 +76,7 @@ Survey snapshots with team scores, benchmarks, and sentiment data.
 
 **dx_snapshot_items columns:** id, snapshot_id, name, item_type, prompt, target_label
 
-**dx_snapshot_team_scores columns:** id, snapshot_id, team_id (FK to dx_snapshot_teams.id), item_id (FK to dx_snapshot_items.id), score, vs_org, vs_prev, vs_industry50, vs_industry75, vs_industry90, unit
+**dx_snapshot_team_scores columns:** id, snapshot_id, snapshot_team_id (FK to dx_snapshot_teams.id), team_id (FK to dx_teams.id), item_id (FK to dx_snapshot_items.id), score, vs_org, vs_prev, vs_industry50, vs_industry75, vs_industry90, unit
 
 **Item types in dx_snapshot_items:**
 - `core4`: Effectiveness, Impact, Quality, Speed
@@ -94,7 +94,7 @@ FROM dx_snapshots ORDER BY end_date DESC LIMIT 1;
 -- Team scores for specific metric (use GROUP BY to dedupe)
 SELECT st.name as team, i.name as metric, MAX(ts.score) as score, MAX(ts.vs_industry50) as vs_industry
 FROM dx_snapshot_team_scores ts
-JOIN dx_snapshot_teams st ON ts.team_id = st.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
   AND st.name = 'Your Team Name'
@@ -104,7 +104,7 @@ GROUP BY st.name, i.name;
 -- All teams comparison on one metric
 SELECT st.name as team, MAX(ts.score) as score, MAX(ts.vs_industry50) as vs_industry
 FROM dx_snapshot_team_scores ts
-JOIN dx_snapshot_teams st ON ts.team_id = st.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
   AND i.name = 'Effectiveness' AND i.item_type = 'core4'
@@ -425,7 +425,7 @@ GROUP BY month ORDER BY month;
 SELECT s.end_date as survey_date, i.name as metric, ts.score
 FROM dx_snapshot_team_scores ts
 JOIN dx_snapshots s ON ts.snapshot_id = s.id
-JOIN dx_snapshot_teams st ON ts.team_id = st.id AND st.snapshot_id = s.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id AND st.snapshot_id = s.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = s.id
 WHERE st.name = 'Your Team Name'
   AND i.item_type = 'core4'
@@ -435,7 +435,7 @@ ORDER BY s.end_date, i.name;
 -- Teams that improved most since last survey (use vs_prev)
 SELECT st.name as team, i.name as metric, MAX(ts.score) as score, MAX(ts.vs_prev) as change
 FROM dx_snapshot_team_scores ts
-JOIN dx_snapshot_teams st ON ts.team_id = st.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
   AND i.name = 'Effectiveness' AND i.item_type = 'core4'
@@ -449,7 +449,7 @@ ORDER BY change DESC NULLS LAST;
 -- Tool satisfaction scores (csat)
 SELECT i.name as tool, AVG(ts.score) as avg_satisfaction, COUNT(DISTINCT st.name) as teams_using
 FROM dx_snapshot_team_scores ts
-JOIN dx_snapshot_teams st ON ts.team_id = st.id
+JOIN dx_snapshot_teams st ON ts.snapshot_team_id = st.id
 JOIN dx_snapshot_items i ON ts.item_id = i.id AND i.snapshot_id = ts.snapshot_id
 WHERE ts.snapshot_id = (SELECT id FROM dx_snapshots ORDER BY end_date DESC LIMIT 1)
   AND i.item_type = 'csat' AND st.parent = false AND ts.score IS NOT NULL

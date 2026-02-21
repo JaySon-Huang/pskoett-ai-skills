@@ -40,6 +40,13 @@ These skills are experimental and currently part of the testing ground setup.
 | [self-improvement-ci](skills/self-improvement-ci/) | CI-only self-improvement workflow for recurring failure-pattern capture using gh-aw |
 | [simplify-and-harden-ci](skills/simplify-and-harden-ci/) | CI-only simplify/harden workflow for pull requests using gh-aw with headless scan/report gates |
 
+## Recommended Flow
+
+- `plan-interview` aligns requirements.
+- `intent-framed-agent` locks execution intent and catches drift.
+- `simplify-and-harden` improves post-implementation quality/security.
+- `self-improvement` captures recurring patterns across tasks.
+
 ## Usage
 
 To use a skill, add it to your agent's configuration or reference it directly.

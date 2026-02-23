@@ -64,6 +64,16 @@ Cover ALL four domains before proceeding:
 - **2-3 questions per batch** (do not exceed)
 - Continue until you have **actionable specificity** (can describe concrete implementation steps)
 
+#### Planning Depth Calibration
+
+Before leaving the interview phase, classify the task and choose a planning depth:
+
+- **Simple/trivial** (small bug fix, isolated change): minimal plan, at most 1 refinement pass
+- **Moderate** (feature work in known area): standard plan, usually 1-2 refinement passes
+- **Complex/high-risk** (multi-file, new architecture, unfamiliar codebase, migrations, auth, concurrency): deep plan with iterative refinement until improvements flatten
+
+Let the user override this (`fast` vs `deep`) if they have a clear preference.
+
 #### Handling Edge Cases
 
 | Scenario | Action |
@@ -86,9 +96,50 @@ After interview completes, explore the codebase to understand:
 - Integration points
 - Potential risks
 
+For complex or unfamiliar projects, do a brief context refresh before deep planning:
+- Re-read `AGENTS.md` and `README.md` if present and relevant
+- Identify the current architecture boundaries and conventions before refining the plan
+- If the session was interrupted or context drifted, refresh these again before another refinement round
+
 ### Phase 3: Plan Generation
 
 Write plan to `docs/plans/plan-NNN-<slug>.md` where NNN is sequential.
+
+Use a **draft -> refine** workflow. Stay in plan space while you are still finding material improvements. Planning tokens are usually much cheaper than implementation tokens for non-trivial work.
+
+#### Draft First, Then Refine
+
+1. Create a draft plan from the interview + exploration results.
+2. Run iterative refinement passes before asking for approval (depth based on task complexity).
+3. Present the refined plan for user review.
+
+#### Iterative Plan Refinement Loop (Before User Review)
+
+Run 1..N refinement passes depending on complexity. For each pass:
+
+1. **Fresh-eyes start (mandatory):** Re-read the interview answers, constraints, success criteria, and the current draft plan with "fresh eyes" before revising anything.
+2. Check for contradictions, missing edge cases, integration risks, and vague implementation steps.
+3. Improve architecture, sequencing, and reliability where it clearly helps users.
+4. Strengthen the testing and validation plan (unit + integration/e2e where applicable, plus useful diagnostics/logging).
+5. Verify feature preservation:
+   - **Do NOT oversimplify**
+   - **Do NOT remove agreed features or functionality** unless the user explicitly approves a scope reduction
+6. Record a short per-pass summary: what changed and why.
+
+Stop iterating when any of the following is true:
+- Two consecutive passes produce no material improvements
+- Changes are only wording/style with no effect on execution quality
+- The task is simple and the plan is already actionable
+- The user asks to stop and proceed
+
+#### Optional: Multi-Plan Synthesis ("Best of All Worlds")
+
+If the user provides multiple competing plans (from different models or prior iterations):
+
+- Compare them honestly against the current plan
+- Extract the best ideas, tradeoffs, and risk mitigations
+- Merge them into a single canonical plan that preserves agreed scope
+- Prefer showing **git-diff style changes** to the existing plan when the user asks for revision output
 
 #### Required Elements
 
@@ -103,6 +154,12 @@ Every plan MUST include:
 
 ## Affected Files/Areas
 [Which parts of codebase will be touched]
+
+## Test Strategy
+[Unit tests, integration tests, and e2e tests/scripts where applicable; include key scenarios, failure modes, and fixtures/mocks]
+
+## Validation and Diagnostics
+[How to verify the feature works after implementation; include detailed logging/diagnostics expectations in tests/scripts when useful for debugging]
 
 ## Open Questions
 [Uncertainties to resolve during implementation]
@@ -127,6 +184,8 @@ Include when relevant:
 
 - **No time estimates** - describe what needs doing, not how long
 - **No length limits** - plan should match task complexity
+- **No silent scope reduction** - do not drop agreed features to make the plan "cleaner"
+- **Don't over-iterate simple work** - use the planning depth calibration above
 - Freeform structure beyond required elements
 
 ### Phase 4: Post-Approval
@@ -144,6 +203,7 @@ If user wants quick planning, use **draft + refine**:
 1. Perform task-focused codebase search
 2. Generate draft plan
 3. Run abbreviated interview to refine
+4. Run exactly one **fresh-eyes** refinement pass (preserve functionality, tighten steps, add test/validation coverage)
 
 ## Resume Support
 
@@ -151,9 +211,13 @@ If a partial plan exists in `docs/plans/`:
 
 ```
 AskUserQuestion: "I found an existing partial plan. Would you like to:"
-- "Continue from where we left off"
+- "Continue the interview"
+- "Resume plan drafting/refinement"
+- "Review current plan and finalize"
 - "Start fresh with a new plan"
 ```
+
+If resuming refinement, first summarize the current plan state and the most recent refinement changes, then continue with the fresh-eyes refinement loop.
 
 ## Example
 

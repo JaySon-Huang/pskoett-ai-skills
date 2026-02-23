@@ -161,6 +161,11 @@ Task tool (spawn teammate):
     Files to review:
     <paste file list here>
 
+    Fresh-eyes start (mandatory): Before reporting findings, re-read all
+    listed changed code with "fresh eyes" and actively look for obvious
+    bugs, errors, confusing logic, brittle assumptions, naming issues,
+    and missed hardening opportunities.
+
     Review each file and check for:
 
     1. Dead code and scaffolding -- debug logs, commented-out attempts,
@@ -218,6 +223,11 @@ Task tool (spawn teammate):
     Do NOT flag issues in other files, even if you notice them.
     Files to review:
     <paste file list here>
+
+    Fresh-eyes start (mandatory): Before reporting findings, re-read all
+    listed changed code with "fresh eyes" and actively look for obvious
+    bugs, errors, confusing logic, brittle assumptions, naming issues,
+    and missed hardening opportunities.
 
     Review each file and check for:
 
@@ -279,6 +289,11 @@ Task tool (spawn teammate):
     Do NOT flag issues in other files, even if you notice them.
     Files to review:
     <paste file list here>
+
+    Fresh-eyes start (mandatory): Before reporting findings, re-read all
+    listed changed code with "fresh eyes" and actively look for obvious
+    bugs, errors, confusing logic, brittle assumptions, and
+    implementation/spec mismatches before running the spec checklist.
 
     Review each file against the spec/plan and check for:
 

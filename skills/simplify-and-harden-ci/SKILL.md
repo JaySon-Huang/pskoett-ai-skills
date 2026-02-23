@@ -93,16 +93,17 @@ Run Simplify & Harden in CI (headless mode) for this pull request.
 Rules:
 1) Review only files changed in this PR.
 2) Do not modify repository files.
-3) Simplify pass: detect dead code, naming clarity issues, control-flow complexity, unnecessary API surface, and over-abstraction.
-4) Harden pass: detect input-validation gaps, injection vectors, auth/authz issues, secret exposure, data leaks, and concurrency risks.
-5) Document pass: suggest non-obvious rationale comments as findings (do not edit files).
-6) Emit structured YAML under key `simplify_and_harden`, including:
+3) Before reporting findings, re-read all changed code with "fresh eyes" and actively look for obvious bugs, errors, confusing logic, brittle assumptions, naming issues, and missed hardening opportunities.
+4) Simplify pass: detect dead code, naming clarity issues, control-flow complexity, unnecessary API surface, and over-abstraction.
+5) Harden pass: detect input-validation gaps, injection vectors, auth/authz issues, secret exposure, data leaks, and concurrency risks.
+6) Document pass: suggest non-obvious rationale comments as findings (do not edit files).
+7) Emit structured YAML under key `simplify_and_harden`, including:
    - simplify findings
    - harden findings (critical/advisory split)
    - summary counts
    - `review_followup_required`
    - learning loop candidates for self-improvement ingestion
-7) If blocking policy is enabled and matching findings exist, mark the run as failed.
+8) If blocking policy is enabled and matching findings exist, mark the run as failed.
 ```
 
 ## Recommended Outputs

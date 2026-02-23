@@ -141,6 +141,8 @@ If the user provides multiple competing plans (from different models or prior it
 - Merge them into a single canonical plan that preserves agreed scope
 - Prefer showing **git-diff style changes** to the existing plan when the user asks for revision output
 
+Reusable prompt templates for the refinement loop and multi-plan synthesis live in `references/iterative-plan-refinement-prompts.md`.
+
 #### Required Elements
 
 Every plan MUST include:

@@ -537,13 +537,11 @@ Ask in chat: "Should I log this as a learning?"
 
 **Detection**: Manual review at session end
 
-### OpenClaw
+### OpenClaw (Optional)
 
-**Activation**: Workspace injection + inter-agent messaging
-**Setup**: Configure workspace path in `~/.openclaw/openclaw.json`
-**Detection**: Via session tools and workspace files (`AGENTS.md`, `SOUL.md`, `TOOLS.md`)
-
-OpenClaw uses a workspace-based model with injected prompt files. See `references/openclaw-integration.md` for detailed setup.
+OpenClaw-specific setup, promotion targets, and hybrid usage details are kept in
+`references/openclaw-integration.md` so this main skill stays focused on the core
+self-improvement workflow for coding agents.
 
 ### Agent-Agnostic Guidance
 
@@ -565,42 +563,3 @@ Or use quick prompts:
 - "Log this to learnings"
 - "Create a skill from this solution"
 - "Check .learnings/ for related issues"
-
-## OpenClaw Integration
-
-OpenClaw uses workspace-based prompt injection with specialized files for different concerns.
-
-### Workspace Structure
-
-```
-~/clawd/                    # Default workspace (configurable)
-├── AGENTS.md              # Multi-agent workflows, delegation patterns
-├── SOUL.md                # Behavioral guidelines, communication style
-├── TOOLS.md               # Tool capabilities, MCP integrations
-└── sessions/              # Session transcripts (auto-managed)
-```
-
-### OpenClaw Promotion Targets
-
-| Learning Type | Promote To | Example |
-|--------------|------------|---------|
-| Agent coordination | `AGENTS.md` | "Delegate file searches to explore agent" |
-| Communication style | `SOUL.md` | "Be concise, avoid disclaimers" |
-| Tool gotchas | `TOOLS.md` | "MCP server X requires auth refresh" |
-| Project facts | `CLAUDE.md` | Standard project conventions |
-
-### Inter-Agent Learning
-
-OpenClaw supports session-based communication:
-- **sessions_list** - See active/recent sessions
-- **sessions_history** - Read transcript from another session
-- **sessions_send** - Send message to another session
-
-### Hybrid Setup (Claude Code + OpenClaw)
-
-When using both:
-1. Keep `.learnings/` for project-specific learnings
-2. Use openclaw workspace files for cross-project patterns
-3. Sync high-value learnings to both systems
-
-See `references/openclaw-integration.md` for complete setup, promotion formats, and troubleshooting.

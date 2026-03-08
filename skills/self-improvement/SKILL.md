@@ -8,13 +8,13 @@ description: "Captures learnings, errors, and corrections to enable continuous i
 ## Install
 
 ```bash
-npx skills add pskoett/pskoett-ai-skills/self-improvement
+npx skills add pskoett/pskoett-ai-skills/skills/self-improvement
 ```
 
 For CI-only execution, use:
 
 ```bash
-npx skills add pskoett/pskoett-ai-skills/self-improvement-ci
+npx skills add pskoett/pskoett-ai-skills/skills/self-improvement-ci
 ```
 
 Log learnings and errors to markdown files for continuous improvement. Coding agents can later process these into fixes, and important learnings get promoted to project memory.

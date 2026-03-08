@@ -8,13 +8,13 @@ description: "Post-completion self-review for coding agents that runs simplify, 
 ## Install
 
 ```bash
-npx skills add pskoett/pskoett-ai-skills/simplify-and-harden
+npx skills add pskoett/pskoett-ai-skills/skills/simplify-and-harden
 ```
 
 For CI-only execution, use:
 
 ```bash
-npx skills add pskoett/pskoett-ai-skills/simplify-and-harden-ci
+npx skills add pskoett/pskoett-ai-skills/skills/simplify-and-harden-ci
 ```
 
 ## Metadata

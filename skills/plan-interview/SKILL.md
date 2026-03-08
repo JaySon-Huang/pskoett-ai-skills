@@ -13,7 +13,7 @@ description: |
 ## Install
 
 ```bash
-npx skills add pskoett/pskoett-ai-skills/plan-interview
+npx skills add pskoett/pskoett-ai-skills/skills/plan-interview
 ```
 
 ## Purpose

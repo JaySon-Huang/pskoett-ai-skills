@@ -12,7 +12,7 @@ npx skills add pskoett/pskoett-ai-skills
 ```
 
 ```bash
-npx skills add pskoett/pskoett-ai-skills/intent-framed-agent
+npx skills add pskoett/pskoett-ai-skills/skills/intent-framed-agent
 ```
 
 ## Purpose

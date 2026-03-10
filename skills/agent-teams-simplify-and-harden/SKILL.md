@@ -8,7 +8,7 @@ description: "Implementation + audit loop using parallel agent teams with struct
 ## Install
 
 ```bash
-npx skills add pskoett/pskoett-ai-skills/agent-teams-simplify-and-harden
+npx skills add pskoett/pskoett-ai-skills/skills/agent-teams-simplify-and-harden
 ```
 
 A two-phase team loop that produces production-quality code: **implement**, then **audit using simplify + harden passes**, then **fix audit findings**, then **re-audit**, repeating until the codebase is solid or the loop cap is reached.

@@ -429,12 +429,28 @@ This injects a learning evaluation reminder after each prompt (~50-100 tokens ov
 }
 ```
 
+### OpenCode Setup (Plugin Hook)
+
+OpenCode hook support is plugin-driven. Add a local project plugin:
+
+```bash
+mkdir -p .opencode/plugins
+cp ./skills/self-improvement/hooks/opencode/plugin.ts ./.opencode/plugins/self-improvement.ts
+```
+
+Restart OpenCode after adding the plugin.
+
+The plugin provides two hook points:
+- `experimental.chat.system.transform` injects a compact self-improvement reminder
+- `tool.execute.after` appends an error-learning nudge when Bash output looks like a failure
+
 ### Available Hook Scripts
 
 | Script | Hook Type | Purpose |
 |--------|-----------|---------|
 | `scripts/activator.sh` | UserPromptSubmit | Reminds to evaluate learnings after tasks |
 | `scripts/error-detector.sh` | PostToolUse (Bash) | Triggers on command errors |
+| `hooks/opencode/plugin.ts` | OpenCode plugin hooks | Injects reminder context and error nudges |
 
 See `references/hooks-setup.md` for detailed configuration and troubleshooting.
 
@@ -518,6 +534,12 @@ This skill works across different AI coding agents with agent-specific activatio
 **Activation**: Hooks (same pattern as Claude Code)
 **Setup**: `.codex/settings.json` with hook configuration
 **Detection**: Automatic via hook scripts
+
+### OpenCode
+
+**Activation**: Plugin hooks (`experimental.chat.system.transform`, `tool.execute.after`)
+**Setup**: `.opencode/plugins/self-improvement.ts` from `hooks/opencode/plugin.ts`
+**Detection**: Automatic via plugin callback execution
 
 ### GitHub Copilot
 

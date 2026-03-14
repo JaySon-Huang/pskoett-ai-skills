@@ -7,6 +7,7 @@ Configure automatic self-improvement triggers for AI coding agents.
 Hooks enable proactive learning capture by injecting reminders at key moments:
 - **UserPromptSubmit**: Reminder after each prompt to evaluate learnings
 - **PostToolUse (Bash)**: Error detection when commands fail
+- **OpenCode plugin events**: Reminder injection and post-tool error nudges
 
 ## Claude Code Setup
 
@@ -109,6 +110,28 @@ Codex uses the same hook system as Claude Code. Create `.codex/settings.json`:
 }
 ```
 
+## OpenCode Setup
+
+OpenCode supports hook-like behavior through local plugins.
+
+1. Create plugin directory:
+
+```bash
+mkdir -p .opencode/plugins
+```
+
+2. Copy the self-improvement plugin from this skill:
+
+```bash
+cp ./skills/self-improvement/hooks/opencode/plugin.ts ./.opencode/plugins/self-improvement.ts
+```
+
+3. Restart OpenCode.
+
+Plugin behavior:
+- `experimental.chat.system.transform`: adds a compact self-improvement reminder
+- `tool.execute.after`: appends an `<error-detected>` nudge when Bash output matches common failure patterns
+
 ## GitHub Copilot Setup
 
 Copilot doesn't support hooks directly. Instead, add guidance to `.github/copilot-instructions.md`:
@@ -141,6 +164,13 @@ For high-value learnings that would benefit other sessions, consider skill extra
 1. Enable PostToolUse hook for Bash
 2. Run a command that fails: `ls /nonexistent/path`
 3. Verify you see `<error-detected>` reminder
+
+### Test OpenCode Plugin Hook
+
+1. Install `.opencode/plugins/self-improvement.ts`
+2. Start OpenCode in the project
+3. Run a failing bash command through the agent, e.g. `ls /nonexistent/path`
+4. Verify tool output contains `<error-detected>` learning reminder
 
 ### Dry Run Extract Script
 
@@ -206,6 +236,7 @@ If you need to reduce overhead further, you can edit `activator.sh` to output le
 - Scripts only output text; they don't modify files or run commands
 - Error detector reads `CLAUDE_TOOL_OUTPUT` environment variable
 - All scripts are opt-in (you must configure them explicitly)
+- OpenCode plugins run with agent privileges; install only trusted local plugin files
 
 ## Disabling Hooks
 

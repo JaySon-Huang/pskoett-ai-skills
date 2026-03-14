@@ -386,7 +386,7 @@ Don't add to .gitignore - learnings become shared knowledge.
 
 Enable automatic reminders through agent hooks. This is **opt-in** - you must explicitly configure hooks.
 
-### Quick Setup (Claude Code / Codex)
+### Quick Setup (Claude Code)
 
 Create `.claude/settings.json` in your project:
 
@@ -405,6 +405,41 @@ Create `.claude/settings.json` in your project:
 ```
 
 This injects a learning evaluation reminder after each prompt (~50-100 tokens overhead).
+
+### Codex CLI Setup (SessionStart Hook)
+
+Create `.codex/hooks.json` in your project:
+
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./skills/self-improvement/scripts/codex-session-start-hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+This injects a lightweight reminder into Codex session context at startup/resume.
+
+### OpenCode Setup (Plugin Hook)
+
+Copy the plugin into your project plugin directory:
+
+```bash
+mkdir -p .opencode/plugins
+cp ./skills/self-improvement/hooks/opencode/plugin.ts ./.opencode/plugins/self-improvement.ts
+```
+
+Restart OpenCode after copying the plugin.
 
 ### Full Setup (With Error Detection)
 
@@ -435,6 +470,8 @@ This injects a learning evaluation reminder after each prompt (~50-100 tokens ov
 |--------|-----------|---------|
 | `scripts/activator.sh` | UserPromptSubmit | Reminds to evaluate learnings after tasks |
 | `scripts/error-detector.sh` | PostToolUse (Bash) | Triggers on command errors |
+| `scripts/codex-session-start-hook.sh` | Codex SessionStart | Injects startup self-improvement reminder |
+| `hooks/opencode/plugin.ts` | OpenCode plugin hooks | Injects system reminder + detects command failures |
 
 See `references/hooks-setup.md` for detailed configuration and troubleshooting.
 
@@ -515,9 +552,15 @@ This skill works across different AI coding agents with agent-specific activatio
 
 ### Codex CLI
 
-**Activation**: Hooks (same pattern as Claude Code)
-**Setup**: `.codex/settings.json` with hook configuration
-**Detection**: Automatic via hook scripts
+**Activation**: `SessionStart` command hook
+**Setup**: `.codex/hooks.json` with `scripts/codex-session-start-hook.sh`
+**Detection**: Automatic at session start/resume
+
+### OpenCode
+
+**Activation**: Plugin hooks (`experimental.chat.system.transform`, `tool.execute.after`)
+**Setup**: `.opencode/plugins/self-improvement.ts` (from `hooks/opencode/plugin.ts`)
+**Detection**: Automatic via plugin hook callbacks
 
 ### GitHub Copilot
 

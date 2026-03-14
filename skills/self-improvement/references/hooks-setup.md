@@ -5,8 +5,8 @@ Configure automatic self-improvement triggers for AI coding agents.
 ## Overview
 
 Hooks enable proactive learning capture by injecting reminders at key moments:
-- **UserPromptSubmit**: Reminder after each prompt to evaluate learnings
-- **PostToolUse (Bash)**: Error detection when commands fail
+- **Prompt/session start**: Reminder to evaluate and log new learnings
+- **After command execution**: Error detection nudges for non-obvious failures
 
 ## Claude Code Setup
 
@@ -89,18 +89,20 @@ For lower overhead, use only the UserPromptSubmit hook:
 
 ## Codex CLI Setup
 
-Codex uses the same hook system as Claude Code. Create `.codex/settings.json`:
+Codex supports command hooks through `.codex/hooks.json`.
+
+Create `.codex/hooks.json` in your project root:
 
 ```json
 {
   "hooks": {
-    "UserPromptSubmit": [
+    "SessionStart": [
       {
-        "matcher": "",
+        "matcher": "startup|resume|clear",
         "hooks": [
           {
             "type": "command",
-            "command": "./skills/self-improvement/scripts/activator.sh"
+            "command": "./skills/self-improvement/scripts/codex-session-start-hook.sh"
           }
         ]
       }
@@ -108,6 +110,32 @@ Codex uses the same hook system as Claude Code. Create `.codex/settings.json`:
   }
 }
 ```
+
+Notes:
+- `SessionStart` injects additional context before task execution begins.
+- Keep the hook output short so startup context remains lightweight.
+
+## OpenCode Setup
+
+OpenCode's recommended hook path is plugins.
+
+1. Create plugin folder if needed:
+
+```bash
+mkdir -p .opencode/plugins
+```
+
+2. Copy the skill plugin:
+
+```bash
+cp ./skills/self-improvement/hooks/opencode/plugin.ts ./.opencode/plugins/self-improvement.ts
+```
+
+3. Restart OpenCode.
+
+The plugin uses:
+- `experimental.chat.system.transform` to inject a self-improvement reminder
+- `tool.execute.after` to append an error-logging nudge on likely Bash failures
 
 ## GitHub Copilot Setup
 
@@ -135,6 +163,20 @@ For high-value learnings that would benefit other sessions, consider skill extra
 2. Start a new Claude Code session
 3. Send any prompt
 4. Verify you see `<self-improvement-reminder>` in the context
+
+### Test Codex SessionStart Hook
+
+1. Add `.codex/hooks.json` config above
+2. Start a new Codex session in the project
+3. Confirm session-start hook executes (Codex prints hook events in CLI output when enabled)
+4. Ask the model to restate active reminders; verify self-improvement guidance appears
+
+### Test OpenCode Plugin Hook
+
+1. Install plugin to `.opencode/plugins/self-improvement.ts`
+2. Start OpenCode in the project
+3. Run a failing bash command (for example `ls /nonexistent/path`) via the agent
+4. Verify the resulting tool output includes `<error-detected>` reminder text
 
 ### Test Error Detector Hook
 
